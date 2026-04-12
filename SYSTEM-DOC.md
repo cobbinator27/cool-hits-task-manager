@@ -1,6 +1,6 @@
 # Cool Hits 2.0 — System Documentation
 
-*Last updated: April 10, 2026*
+*Last updated: April 11, 2026*
 
 This is the master reference doc for Daniel's task management system. It covers what exists, how it works, what's broken, what's planned, and how to maintain it. Keep this updated as the system evolves.
 
@@ -8,82 +8,97 @@ This is the master reference doc for Daniel's task management system. It covers 
 
 ## What This Is
 
-A personal task dashboard that replaces the need to live inside Monday.com all day. It's a single self-contained HTML file (~4,000 lines) with inline CSS and JS, opened locally in the browser as a `file://` URL. Data flows in from Monday.com via scheduled Claude sync tasks, and the browser persists local changes via localStorage.
+A personal task dashboard that replaces the need to live inside Monday.com all day. The dashboard is a static HTML file hosted on Vercel, backed by Supabase as the data layer. Data flows in from Monday.com via a scheduled Claude sync task. Any device or Claude session can read and write tasks directly through the Supabase API.
 
-The system has three layers: the dashboard HTML (the UI), JSON data files (Claude's read/write layer), and Monday.com (the upstream source of truth for work tasks).
+**Live URL:** https://cool-hits-task-manager.vercel.app  
+**Repo:** https://github.com/cobbinator27/cool-hits-task-manager (private)
 
 ---
 
 ## Architecture
 
+```
+Monday.com  ──sync task──>  Supabase DB  <──read/write──  dashboard (Vercel)
+                                  ↑                              ↑
+                           Claude sessions               any device / browser
+                           (skill / tasks)
+```
+
 ### File Layout
 
 ```
 /Users/danielcobb/Documents/task-manager/
-├── dashboard.html              <- The dashboard (open in browser)
-├── SYSTEM-DOC.md               <- This file
-├── scope-multi-device-task-manager.md  <- Future mobile/multi-device scope
+├── dashboard.html              ← Local copy (open via file:// for offline use)
+├── SYSTEM-DOC.md               ← This file
+├── vercel.json                 ← Serves dashboard.html at /
+├── task-manager.skill          ← Cowork skill package (ZIP)
+├── task-manager.plugin         ← Cowork plugin package (ZIP)
 ├── skill/
-│   └── SKILL.md                <- Claude-facing skill (instructions for all Cowork sessions)
-│   └── references/             <- Supporting files for the skill
-├── data/
-│   ├── config.json             <- Monday board IDs, user ID, sync config
-│   ├── seo-team-ops.json       <- Work tasks from SEO Team Ops board
-│   ├── content-ops.json        <- Content pipeline from Content Ops: PMG board
-│   ├── personal.json           <- Personal tasks (manual + AI-created)
-│   ├── jobs.json               <- Job search listings (AI scan output)
-│   ├── briefs.json             <- Brief automation pipeline data (read-only for now)
-│   └── backups/                <- Auto-created by sync task before each write
-├── starter-kit/
-│   ├── dashboard.html          <- Clean starter version (for sharing with colleagues)
-│   └── SETUP-GUIDE.md          <- Setup instructions for the starter kit
-└── task-manager.plugin         <- Cowork plugin package (v0.6.0)
+│   ├── SKILL.md                ← Source for the skill (edit this, then repack)
+│   └── references/
+│       └── supabase-api-reference.md  ← Standalone Supabase reference (share with any skill/task)
+└── data/
+    ├── supabase-config.json    ← Supabase URL + keys (gitignored — never commit)
+    ├── config.json             ← Monday board IDs, user ID
+    ├── seo-team-ops.json       ← Snapshot written after each Monday sync (backup only)
+    ├── content-ops.json        ← Snapshot written after each Monday sync (backup only)
+    ├── personal.json           ← Personal tasks snapshot (backup only)
+    └── jobs.json               ← Job listings snapshot (backup only)
 ```
 
 ### Persistence Model
 
-Two layers, merged on page load:
+Supabase is the source of truth. localStorage is a write-through cache for snappy UI.
 
-1. **Embedded data arrays** in `dashboard.html` — Claude writes these during syncs. They're the "fresh load" baseline. Arrays: `WORK_TASKS`, `PERSONAL_TASKS`, `CONTENT_PIPELINE`, `JOB_LISTINGS`, `BRIEF_ITEMS`.
+1. **On page load** — `init()` authenticates via Supabase magic link (skipped on `file://`), then calls `loadFromSupabase()` to fetch all data. Page renders after load.
+2. **On every edit** — `saveState()` writes to localStorage immediately (sync) then calls `syncToSupabase()` in the background (async, fire-and-forget).
+3. **Every 3 minutes** — the dashboard silently checks `sync_meta.last_sync`. If it changed (e.g. a sync task ran), it re-fetches from Supabase and re-renders in place. No page reload.
+4. **Claude sessions** — read/write directly to Supabase via REST API using the service role key.
 
-2. **localStorage** in the browser — Every time you interact with the dashboard (drag a task, change a status, add a comment), it saves to localStorage immediately. On page load, localStorage wins for existing tasks (by ID), and any NEW tasks Claude embedded since last load get appended.
+### Auth
 
-This means: Claude can safely add tasks without stomping your local changes. But if you clear browser data, you lose any edits that weren't synced back to the JSON files.
+Magic link email auth via Supabase. Locked to `dacobb27@gmail.com` via RLS policies. "Allow new users" is disabled in Supabase Auth settings — only the pre-approved email can log in.
 
-### Data Flow
+On `file://` protocol (local), auth is skipped entirely and the app falls back to localStorage.
 
-```
-Monday.com  ──sync task──>  JSON files  ──embedded in──>  dashboard.html
-                                                              │
-                                                         localStorage
-                                                         (browser-side
-                                                          edits)
-```
+---
 
-Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync task.
+## Supabase Tables
+
+| Table | Contents |
+|-------|----------|
+| `tasks` | Work + personal tasks. Columns: `id`, `scope` ('work'/'personal'), `data` (jsonb), `updated_at` |
+| `content_items` | Content pipeline items. Columns: `id`, `data`, `updated_at` |
+| `job_listings` | Job search listings. Columns: `id`, `data`, `updated_at` |
+| `task_order` | Manual drag-drop sort order. Columns: `order_key`, `task_ids` (text[]) |
+| `deleted_tasks` | IDs of tasks Daniel deleted. Columns: `id`, `deleted_at` |
+| `sync_meta` | Key/value store (e.g. `last_sync`). Columns: `key`, `value`, `updated_at` |
+
+Full API reference → `skill/references/supabase-api-reference.md`
 
 ---
 
 ## Dashboard Tabs
 
 ### Work Tab
-- **My Tasks** — Board view (Today/Tomorrow/This Week/Later/Backlog columns with drag-and-drop) or List view. Groupable by timeline, priority, source, status, or project.
+- **My Tasks** — Board view (Today/Tomorrow/This Week/Later/Backlog columns) or List view. Drag-and-drop with manual sort order persisted to Supabase. Groupable by timeline, priority, source, status, or project.
 - **Content Pipeline** — Kanban by stage (Not Started → Brief Ready → Writing → Editing → Uploading → Ready for Publishing). Read-only from Content Ops: PMG board.
 
 ### Personal Tab
 - **My Tasks** — Same layout as Work, independent task list.
-- **Job Search** — Hybrid 2×3 grid (Tier 1/Tier 2/Contacted on top, Tier 3/Declined/Archived on bottom) plus a pipeline kanban view. Tracks LinkedIn opportunities from the AI scan.
+- **Job Search** — Hybrid 2×3 grid (Tier 1/Tier 2/Contacted on top, Tier 3/Declined/Archived on bottom) plus a pipeline kanban view.
 
 ### Briefs Tab
-- Read-only status monitor for the content brief automation pipeline. 13-step status system. Decision made to use Monday.com as the primary UI for briefs, with this tab as a diagnostic/spot-check view. Batch operations and editing are built but will be deprecated in favor of Monday-first approach.
+- Read-only status monitor for the content brief automation pipeline. Decision: Monday.com is the primary UI for briefs. This tab is a diagnostic/spot-check view only.
 
-### Shared Features (all tabs)
+### Shared Features
 - Dark/light mode (persisted to localStorage)
-- Auto-reload every 60 seconds (view state persisted so you don't lose your place)
+- Silent 3-minute background sync (polls `sync_meta`, re-renders if changed — no page reload)
 - Quick-add bar with bucket, priority, and project dropdowns
 - Editable task names, statuses, priorities, due dates, projects in detail panels
 - Comment system with Monday.com push support
 - Project tagging with hub tasks, filtering, and grouping
+- Drag-and-drop manual sort order within columns (order saved to Supabase)
 
 ---
 
@@ -101,8 +116,8 @@ Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync
 ### Column Mappings
 
 **SEO Team Ops:**
-- Priority: `color_mkrn7asr` — Critical (10), Boulder (110), Pebble (109), Low (7)
-- Status: `project_status` — Not Started (5), On Deck (2), In Progress (0), Waiting/Blocked (3), At Risk (4), Done (1), Cancelled (6)
+- Priority: `color_mkrn7asr`
+- Status: `project_status`
 - Due: `date`
 - Category: `label`
 - Domain: `status_1_mkm5f38j`
@@ -110,78 +125,93 @@ Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync
 
 **Content Ops: PMG:**
 - Status: `dup__of_cs___status`
-- Owner: `people__1`
-- Writer: `person`
-- Editor: `people`
+- Owner: `people__1` | Writer: `person` | Editor: `people`
 - Dates: `date_mkny4yxd` (Brief), `date4` (Writing), `date__1` (Edits), `date_Mjj25RxX` (Upload), `date2__1` (Publishing)
 
 ---
 
 ## Scheduled Tasks
 
-### sync-task-dashboard
-- **Schedule:** 8 AM, 10 AM, 1 PM, 4 PM on weekdays
-- **Does:** Pulls tasks from both Monday boards, updates JSON data files, regenerates the data arrays in dashboard.html
-- **Key rules:** Backs up before writing, only replaces data arrays (not full HTML), validates JS syntax after writing, restores from backup on failure
-- **Known issue history:** Previously overwrote the full HTML file, wiping structural changes (new tabs, UI modifications). Fixed April 2026 — prompt now explicitly says "ONLY replace data arrays." Also previously dropped commas between array items before comment lines, causing blank dashboard. Formatting rules now in both the task prompt and SKILL.md.
+### sync-monday-to-supabase
+- **Schedule:** 8 AM, 10 AM, 1 PM, 4 PM — weekdays
+- **Does:**
+  1. **Outbound** — reads Supabase tasks, finds comments with `pushToMonday: true`, posts to Monday via MCP, marks them `pushedToMonday: true`
+  2. **Inbound** — pulls Daniel's assigned items from SEO Team Ops + Content Ops, merges with existing Supabase rows (preserving local comments), upserts to `tasks` and `content_items` tables, writes JSON snapshots as backup
+  3. Updates `sync_meta.last_sync`
+- **Key rules:** Never overwrites local comments. Checks `deleted_tasks` before upserting. Never touches `dashboard.html`.
+- **To approve tools:** Click "Run now" in sidebar and approve each tool with "Always allow" on first run.
 
-### linkedin-job-scan-morning
-- **Schedule:** 6:05 AM daily
-- **Does:** Scans LinkedIn for content/SEO leadership roles, scores and tiers them, creates tailored resumes, emails Daniel for Tier 1 opportunities
-- **Known issue:** Couldn't access `data/jobs.json` because the scheduled task session didn't have the folder mounted. Fix: task needs to request access to `/Users/danielcobb/Documents/task-manager` at startup. Do a "Run now" and approve with "Always allow" to persist permissions.
-
-### linkedin-job-scan-evening
-- **Schedule:** 6:06 PM daily
-- **Does:** Same as morning scan, catches afternoon/evening postings
-- **Same folder access issue as morning scan**
+### linkedin-job-scan-morning / linkedin-job-scan-evening
+- **Schedule:** 6:05 AM / 6:06 PM daily
+- **Lives in:** Cowork (work account Claude Code)
+- **Does:** Scans LinkedIn for content/SEO leadership roles, scores and tiers them, creates tailored resumes, writes to Supabase `job_listings` table (and `jobs.json` snapshot), emails Daniel for Tier 1 opportunities
+- **Credential pattern:** Reads `SUPABASE_SERVICE_KEY` env var (set in Cowork Claude Code settings). Reference: `skill/references/supabase-api-reference.md`.
 
 ### brief-orchestrator
-- **Schedule:** 11:04 PM daily (currently **disabled**)
-- **Does:** Reads feeder spreadsheet, finds briefs marked "Ready for AI Brief", spawns brief runners
-- **Status:** On hold pending decision to move brief management to Monday-first approach
+- **Schedule:** Disabled
+- **Status:** On hold — Monday-first approach for briefs is working.
+
+---
+
+## Credentials & Secrets
+
+| Secret | Where stored | Used by |
+|--------|-------------|---------|
+| Supabase service role key | `data/supabase-config.json` (gitignored) | Local Claude sessions |
+| `SUPABASE_SERVICE_KEY` env var | Claude Code Settings → Environment | Cloud sessions, Cowork, GitHub Codespaces |
+| Supabase anon key | Embedded in `dashboard.html` | Browser (public, safe to expose) |
+
+**Credential loading order in skill/tasks:**
+1. Try to read `data/supabase-config.json`
+2. Fall back to `$SUPABASE_SERVICE_KEY` env var
+
+---
+
+## Skill & Plugin
+
+The task creation skill tells Claude how to add/update tasks from any session.
+
+- **Source:** `skill/SKILL.md` — edit this file when updating the skill
+- **Packaged as:** `task-manager.skill` and `task-manager.plugin` (both are ZIPs)
+- **To update:** Edit `skill/SKILL.md`, then repack:
+  ```bash
+  # Repack .skill
+  mkdir -p /tmp/skill_repack/task-manager
+  cp skill/SKILL.md /tmp/skill_repack/task-manager/SKILL.md
+  cd /tmp/skill_repack && zip -r /path/to/task-manager.skill task-manager/
+
+  # Repack .plugin (extract, replace both SKILL.md copies, rezip)
+  ```
+- **Works from:** Local machine (reads config file), cloud Claude Code (reads env var), GitHub Codespaces (reads env var)
 
 ---
 
 ## Known Issues & Watchouts
 
-### The Sync Task Can Break the Dashboard
-**Severity: High** | **Status: Mitigated but monitor**
-
-The sync task regenerates data arrays in dashboard.html. If it drops commas, uses wrong syntax, or rewrites the full file, the dashboard goes blank. Mitigations in place: backup before write, syntax validation, explicit formatting rules in prompt, "only touch data arrays" instruction. But Claude sessions are non-deterministic — a future sync could still deviate. Always check the dashboard after the first sync run of the day.
-
-**Recovery:** Go to `data/backups/`, find the most recent file, copy it over `dashboard.html`.
-
-### localStorage Is Per-Browser, Per-Device
-**Severity: Medium** | **Status: Accepted for now**
-
-If you open the dashboard in a different browser or clear data, you lose any edits that only existed in localStorage (tasks added via quick-add, drag-and-drop moves, status changes). The sync task doesn't capture browser-side edits back to JSON.
-
-**Workaround:** For important tasks, ask Claude to add them (they go into the JSON and survive across browsers). Quick-add tasks are ephemeral until the next sync embeds them.
-
 ### Job Search Resume Links Don't Work
 **Severity: Low** | **Status: Open**
 
-The dashboard shows `file://` links for resumes and summaries, but browsers block `file://` URLs for security. The intended fix was to upload to Google Drive and link there, but the Google Drive MCP only supports search/read, not upload. Deferred until multi-device migration (where files would be in cloud storage anyway).
+The dashboard shows local file paths for resumes/summaries. Browsers block `file://` links. Deferred — needs a cloud storage solution (Google Drive upload not yet supported by MCP).
 
-### Scheduled Tasks Need Folder Access
-**Severity: Medium** | **Status: Partially fixed**
+### Mobile UI is Desktop-Only
+**Severity: Low** | **Status: Accepted**
 
-Scheduled tasks run in isolated sessions and need explicit folder access. The fix is to request the directory in the task prompt and do a "Run now" with "Always allow" to persist permissions. The sync task has been updated but the job scan tasks still need the same treatment.
+The dashboard has basic responsive breakpoints (1-column board at 768px) but was designed for desktop. No dedicated mobile pass has been done. Functional but cramped on phone.
 
-### Briefs Tab Architecture Decision
-**Severity: Info** | **Status: Decided**
+### Briefs Tab Has Dead Editing Code
+**Severity: Info** | **Status: Accepted**
 
-Built a full briefs management UI (13-step pipeline, batch operations, import, filtering), then decided Monday.com should be the primary UI for briefs. The tab remains as a read-only status monitor. If the Monday-first approach works well, the editing features can be removed. If it doesn't work, the infrastructure is there to reactivate.
+Full brief management UI is built but hidden/read-only. Leaving in place in case the Monday-first approach is abandoned.
 
 ---
 
 ## Active Projects
 
-### Work Projects
+### Work
 - **HaH Migration** — HireAHelper site migration tasks
 
-### Personal Projects
-- **Simple Budgets** — Personal budgeting app (bugs and improvements tracked here)
+### Personal
+- **Simple Budgets** — Personal budgeting app
 
 ---
 
@@ -197,39 +227,34 @@ Built a full briefs management UI (13-step pipeline, batch operations, import, f
 | Apr 8, 2026 | v0.5.1 | Removed hard page refresh, added view state persistence |
 | Apr 8, 2026 | v0.5.2 | Added 60-second auto-reload with view state persistence |
 | Apr 9, 2026 | v0.6 | Added Briefs tab (13-step pipeline, batch ops, import, filters) |
-| Apr 9, 2026 | v0.6.1 | Fixed briefs tab always visible (CSS `!important` override) |
-| Apr 10, 2026 | v0.7 | Fixed sync task breaking dashboard (comma issues), added backup + validation to sync task, added formatting rules to SKILL.md |
+| Apr 9, 2026 | v0.6.1 | Fixed briefs tab always visible |
+| Apr 10, 2026 | v0.7 | Fixed sync task breaking dashboard, added backup + validation |
 | Apr 10, 2026 | v0.7.1 | Added project dropdown and Tomorrow to quick-add, editable task names |
-| Apr 10, 2026 | v0.7.2 | Updated sync task to only replace data arrays (not full file rewrite) |
-| Apr 10, 2026 | — | Created starter kit for sharing, wrote this system doc |
-
-### Plugin Versions
-- **v0.6.0** — Current. Updated job fields, project system, job search board docs.
+| Apr 10, 2026 | v0.7.2 | Sync task now only replaces data arrays (not full file rewrite) |
+| Apr 11, 2026 | v0.8 | **Supabase migration** — replaced JSON/localStorage architecture with Supabase as data layer. Dashboard hosted on Vercel. Magic link auth. Multi-device access. |
+| Apr 11, 2026 | v0.8.1 | Three bug fixes: smart auto-reload (skip if typing/card open), deleted task dedup, drag-and-drop manual sort order |
+| Apr 11, 2026 | v0.8.2 | Replaced 60s page reload with silent 3-minute Supabase poll |
+| Apr 11, 2026 | v0.8.3 | Skill updated for Supabase architecture + env var credential fallback for cloud sessions |
 
 ---
 
-## Roadmap / Future Ideas
+## Roadmap
 
 ### Near-term
-- [ ] Fix scheduled task folder access (do "Run now" + "Always allow" on job scan tasks)
-- [ ] Monitor sync task behavior after the "only replace data arrays" fix
-- [ ] Decide on brief pipeline: fully commit to Monday-first or keep dashboard UI
-- [ ] Upload resumes/summaries to Google Drive (blocked on Drive upload MCP)
+- [ ] Run Monday sync task → approve tools with "Always allow" on first run
+- [ ] Update Cowork job scan task to write to Supabase `job_listings` table
+- [ ] Set `SUPABASE_SERVICE_KEY` env var in Claude Code Settings for cloud session support
+- [ ] Mobile UI pass (proper touch targets, tab nav, etc.)
 
 ### Medium-term
-- [ ] Multi-device access — see `scope-multi-device-task-manager.md` for full analysis
-  - Phase 1: Host dashboard on GitHub Pages + JSON in GitHub repo (any device can view)
-  - Phase 2: PWA + Supabase for full mobile app with quick-add
-- [ ] Mobile quick-add (Telegram bot, Apple Shortcut, or PWA)
-- [ ] Capture browser-side edits back to JSON (close the localStorage gap)
+- [ ] Upload resumes/summaries to cloud storage (blocked on Drive upload support)
 - [ ] Auto-archive jobs with no activity after 4 weeks
 - [ ] Notification system (upcoming due dates, gated items ready to run)
 
 ### Someday/Maybe
-- [ ] Slack/email integration for task creation ("email a special inbox to create a task")
 - [ ] Auto-push status changes to Monday (currently only comments push)
-- [ ] AI-powered daily standup summary ("here's what changed since yesterday")
-- [ ] Shared dashboard for team visibility (read-only view for colleagues)
+- [ ] AI-powered daily standup summary
+- [ ] Shared read-only dashboard view for team
 
 ---
 
@@ -240,6 +265,6 @@ Update this file whenever:
 - A scheduled task is created or modified
 - A known issue is discovered or resolved
 - A roadmap item is started or completed
-- The architecture changes (new data files, new integrations, etc.)
+- The architecture changes
 
-The SKILL.md is for Claude — it tells Claude how to interact with the system. This doc is for Daniel — it tells you how the system works, what's broken, and where it's going.
+The `skill/SKILL.md` is Claude-facing — how to interact with the system. This doc is Daniel-facing — how the system works, what's broken, where it's going.
