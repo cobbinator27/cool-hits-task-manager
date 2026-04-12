@@ -1056,6 +1056,13 @@ body {
 .badge-tier-2 { background: var(--blue-dim); color: var(--blue); }
 .badge-tier-3 { background: var(--gray-dim); color: var(--gray); }
 
+.job-posted {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
 .job-meta {
   font-size: 10px;
   color: var(--text-muted);
@@ -3017,9 +3024,9 @@ function renderJobCard(job) {
     + (job.salary ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.salary)+'</span>' : '')
     + (job.location ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.location)+'</span>' : '')
     + '</div>'
+    + (job.postedDate ? '<div class="job-posted">Posted '+new Date(job.postedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>' : '')
     + '<div class="job-meta">'
     + (job.source ? '<span>'+escHtml(job.source)+'</span>' : '')
-    + (job.postedDate ? '<span>Posted: '+new Date(job.postedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
     + (job.foundDate ? '<span>Found: '+new Date(job.foundDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
     + (job.appliedDate ? '<span>Applied: '+new Date(job.appliedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
     + '</div>'
