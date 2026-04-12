@@ -1,6 +1,6 @@
 # Cool Hits 2.0 — System Documentation
 
-*Last updated: April 10, 2026*
+*Last updated: April 12, 2026*
 
 This is the master reference doc for Daniel's task management system. It covers what exists, how it works, what's broken, what's planned, and how to maintain it. Keep this updated as the system evolves.
 
@@ -19,48 +19,66 @@ The system has three layers: the dashboard HTML (the UI), JSON data files (Claud
 ### File Layout
 
 ```
-/Users/danielcobb/Documents/task-manager/
-├── dashboard.html              <- The dashboard (open in browser)
-├── SYSTEM-DOC.md               <- This file
-├── scope-multi-device-task-manager.md  <- Future mobile/multi-device scope
-├── skill/
-│   └── SKILL.md                <- Claude-facing skill (instructions for all Cowork sessions)
-│   └── references/             <- Supporting files for the skill
+cool-hits-task-manager/ (GitHub: cobbinator27/cool-hits-task-manager)
+├── CLAUDE.md                   <- Auto-read by Claude Code on every session (entry point)
+├── SYSTEM-DOC.md               <- This file (master reference)
+├── scope-multi-device-task-manager.md  <- Historical planning doc (Phase 1 now implemented)
+├── dashboard.html              <- The dashboard (Vercel-hosted; also openable locally)
+├── vercel.json                 <- Vercel routing config
+├── .claude/
+│   └── skills/
+│       └── task-manager/
+│           ├── SKILL.md        <- Claude-facing skill (auto-loads in any session that opens this repo)
+│           └── references/
+│               └── supabase-api-reference.md
 ├── data/
 │   ├── config.json             <- Monday board IDs, user ID, sync config
-│   ├── seo-team-ops.json       <- Work tasks from SEO Team Ops board
-│   ├── content-ops.json        <- Content pipeline from Content Ops: PMG board
-│   ├── personal.json           <- Personal tasks (manual + AI-created)
-│   ├── jobs.json               <- Job search listings (AI scan output)
-│   ├── briefs.json             <- Brief automation pipeline data (read-only for now)
-│   └── backups/                <- Auto-created by sync task before each write
+│   ├── supabase-config.json    <- Credentials (gitignored — NEVER commit)
+│   ├── seo-team-ops.json       <- Last-sync snapshot of SEO work tasks
+│   ├── content-ops.json        <- Last-sync snapshot of content pipeline
+│   ├── personal.json           <- Last-sync snapshot of personal tasks
+│   ├── jobs.json               <- Last-sync snapshot of job listings
+│   ├── briefs.json             <- Brief automation pipeline data (read-only)
+│   └── backups/                <- Auto-created by sync task (gitignored)
 ├── starter-kit/
 │   ├── dashboard.html          <- Clean starter version (for sharing with colleagues)
 │   └── SETUP-GUIDE.md          <- Setup instructions for the starter kit
-└── task-manager.plugin         <- Cowork plugin package (v0.6.0)
+├── task-manager.plugin         <- Cowork plugin package (built artifact, ZIP)
+└── task-manager.skill          <- Skill package (built artifact, ZIP)
 ```
+
+**Note on skill path:** `.claude/skills/task-manager/` is the Claude Code convention. Any Claude Code session that opens this repo (desktop CLI, laptop, phone via claude.ai/code) will auto-load the skill. Previously lived at `skill/SKILL.md`; moved April 12, 2026 to enable cross-device auto-loading.
 
 ### Persistence Model
 
-Two layers, merged on page load:
+**Supabase is the source of truth for task data.** The dashboard loads data from Supabase on page init via REST, and writes back to Supabase as you interact with it (drag, status change, add comment, etc.). localStorage is used only for UI state (active tab, dark mode preference, view settings) — not for task data.
 
-1. **Embedded data arrays** in `dashboard.html` — Claude writes these during syncs. They're the "fresh load" baseline. Arrays: `WORK_TASKS`, `PERSONAL_TASKS`, `CONTENT_PIPELINE`, `JOB_LISTINGS`, `BRIEF_ITEMS`.
+**Key Supabase tables:**
+- `tasks` (with `scope` column: `'work'` or `'personal'`)
+- `content_items`
+- `job_listings`
+- `task_order` (drag-and-drop sort order per group)
+- `deleted_tasks` (IDs to never resurrect)
+- `sync_meta` (last-sync timestamps, etc.)
 
-2. **localStorage** in the browser — Every time you interact with the dashboard (drag a task, change a status, add a comment), it saves to localStorage immediately. On page load, localStorage wins for existing tasks (by ID), and any NEW tasks Claude embedded since last load get appended.
-
-This means: Claude can safely add tasks without stomping your local changes. But if you clear browser data, you lose any edits that weren't synced back to the JSON files.
+**Local JSON files in `data/`** are kept as read-only snapshots written by the sync task after each Monday pull. They're a backup/audit trail, not a live data source for the dashboard.
 
 ### Data Flow
 
 ```
-Monday.com  ──sync task──>  JSON files  ──embedded in──>  dashboard.html
-                                                              │
-                                                         localStorage
-                                                         (browser-side
-                                                          edits)
+Monday.com ──sync task──> Supabase ──REST read/write──> Dashboard (Vercel)
+                              │                               ↑
+                              │                        any device / browser
+                              ↓
+                      local JSON snapshots
+                      (backup only)
 ```
 
-Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync task.
+**Inbound:** Scheduled sync tasks on Daniel's PC pull from Monday.com and upsert to Supabase.
+
+**Outbound:** Comments flagged `pushToMonday: true` get posted to Monday by the outbound sync step (same task), which then updates the Supabase row to set `pushedToMonday: true`.
+
+**AI task creation (any device):** Claude Code (desktop CLI, laptop, or claude.ai/code on phone) writes directly to Supabase via the REST API. Tasks appear on the dashboard immediately on next page interaction.
 
 ---
 
@@ -79,11 +97,60 @@ Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync
 
 ### Shared Features (all tabs)
 - Dark/light mode (persisted to localStorage)
-- Auto-reload every 60 seconds (view state persisted so you don't lose your place)
+- Silent background poll every 60 seconds (fetches fresh data from Supabase without reloading the page, so view state is preserved)
 - Quick-add bar with bucket, priority, and project dropdowns
 - Editable task names, statuses, priorities, due dates, projects in detail panels
 - Comment system with Monday.com push support
 - Project tagging with hub tasks, filtering, and grouping
+
+---
+
+## Working Across Devices
+
+Daniel works from three contexts:
+
+1. **Desktop PC** — Always-on automation hub: Cowork, Monday sync, LinkedIn job scans
+2. **Laptop** — Primary daily driver for deep work and task management
+3. **Phone** — claude.ai/code for quick task creation and status checks while away from a computer
+
+### Two Source-of-Truth Systems (Important to Separate)
+
+| What | Source of Truth | Sync Mechanism |
+|------|-----------------|----------------|
+| **Task data** (tasks, comments, content items, jobs) | **Supabase** | Real-time. All devices read/write directly via REST. No git involved. |
+| **Code and docs** (skill, dashboard.html, SYSTEM-DOC.md, CLAUDE.md) | **GitHub repo** | Manual. `git pull` before editing, `git push` after. |
+
+**Practical implication:** Creating or editing tasks from any device is instant and cross-device by default (Supabase handles it). Only changes to how the system works — skill updates, dashboard code, documentation — require git workflow.
+
+### Device Setup
+
+| Device | Skill availability | Supabase credential |
+|--------|-------------------|---------------------|
+| Desktop PC | Auto-loads when Claude Code opens the cloned repo | `data/supabase-config.json` (gitignored local file) |
+| Laptop | Auto-loads when Claude Code opens the cloned repo | Same as PC — file on disk |
+| Phone / any browser (claude.ai/code) | Auto-loads from `.claude/skills/task-manager/` when the repo is attached to a session | `SUPABASE_SERVICE_KEY` env var set in the claude.ai/code environment config |
+
+The skill's credential-loading snippet handles both cases transparently — it reads the config file if present, otherwise falls back to the env var. See `.claude/skills/task-manager/SKILL.md` for the exact snippet.
+
+### Git Workflow (Plain-English for Non-Developers)
+
+- Think of GitHub as the master copy. Your laptop/PC folder is a working copy that you sync up and down.
+- **Before editing code or docs on a device you haven't used in a while:** `git pull` to bring down the latest. (Claude can do this for you — just ask.)
+- **After editing:** commit and push. Other devices will be stale until they pull.
+- **Phone sessions** (claude.ai/code): Claude handles git automatically. It clones fresh, edits, and pushes back to GitHub. Your laptop/PC then needs to `git pull` to catch up.
+
+### Conflict Prevention
+
+The only real risk is editing the same file on two devices without syncing in between. Mitigation: always `git pull` before starting an editing session on a given device. If a conflict happens, Claude can help resolve it — it's annoying but not catastrophic.
+
+### Environment Variable Setup (One-Time Per Environment)
+
+The Supabase service key needs to be available wherever Claude Code runs:
+
+- **Desktop CLI (PC/laptop):** either set in `~/.claude/settings.json` under `environment`, or rely on the gitignored `data/supabase-config.json` file. The latter is already in place on Daniel's PC.
+- **claude.ai/code web/mobile:** set once in the environment config → Environment variables field. Persists across all sessions in that environment.
+
+Env vars do NOT sync between desktop CLI and web. You set them separately in each place. That's one of the current limitations — see roadmap for potential improvements.
 
 ---
 
@@ -121,9 +188,9 @@ Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync
 
 ### sync-task-dashboard
 - **Schedule:** 8 AM, 10 AM, 1 PM, 4 PM on weekdays
-- **Does:** Pulls tasks from both Monday boards, updates JSON data files, regenerates the data arrays in dashboard.html
-- **Key rules:** Backs up before writing, only replaces data arrays (not full HTML), validates JS syntax after writing, restores from backup on failure
-- **Known issue history:** Previously overwrote the full HTML file, wiping structural changes (new tabs, UI modifications). Fixed April 2026 — prompt now explicitly says "ONLY replace data arrays." Also previously dropped commas between array items before comment lines, causing blank dashboard. Formatting rules now in both the task prompt and SKILL.md.
+- **Does:** Pulls tasks from both Monday boards, upserts to Supabase (`tasks`, `content_items` tables), updates `sync_meta.last_sync`, writes local JSON snapshots to `data/` as backups
+- **Key rules:** Check `deleted_tasks` before upserting (never resurrect deleted items), preserve local-source comments when merging Monday data, use upsert (`Prefer: resolution=merge-duplicates`), never touch `dashboard.html`
+- **Known issue history:** The sync task originally regenerated data arrays inside `dashboard.html`. It had recurring issues (dropped commas, full-file overwrites wiping UI changes). Fixed April 2026 by migrating to Supabase as the data source; `dashboard.html` is no longer regenerated at all.
 
 ### linkedin-job-scan-morning
 - **Schedule:** 6:05 AM daily
@@ -144,19 +211,16 @@ Outbound: Comments flagged `pushToMonday: true` get posted to Monday by the sync
 
 ## Known Issues & Watchouts
 
-### The Sync Task Can Break the Dashboard
-**Severity: High** | **Status: Mitigated but monitor**
+### ~~The Sync Task Can Break the Dashboard~~
+**Status: Resolved (April 2026)** — The sync task no longer touches `dashboard.html`. Data lives in Supabase; the dashboard fetches on load. Class of bug eliminated.
 
-The sync task regenerates data arrays in dashboard.html. If it drops commas, uses wrong syntax, or rewrites the full file, the dashboard goes blank. Mitigations in place: backup before write, syntax validation, explicit formatting rules in prompt, "only touch data arrays" instruction. But Claude sessions are non-deterministic — a future sync could still deviate. Always check the dashboard after the first sync run of the day.
+### ~~localStorage Is Per-Browser, Per-Device~~
+**Status: Resolved (April 2026)** — Task data now lives in Supabase, not localStorage. All devices see the same data in real time. localStorage only holds UI preferences (dark mode, active tab) which are acceptable to be per-browser.
 
-**Recovery:** Go to `data/backups/`, find the most recent file, copy it over `dashboard.html`.
+### Secrets in claude.ai/code Environment Variables
+**Severity: Low-Medium** | **Status: Accepted for personal use**
 
-### localStorage Is Per-Browser, Per-Device
-**Severity: Medium** | **Status: Accepted for now**
-
-If you open the dashboard in a different browser or clear data, you lose any edits that only existed in localStorage (tasks added via quick-add, drag-and-drop moves, status changes). The sync task doesn't capture browser-side edits back to JSON.
-
-**Workaround:** For important tasks, ask Claude to add them (they go into the JSON and survive across browsers). Quick-add tasks are ephemeral until the next sync embeds them.
+claude.ai/code warns that env vars are "visible to anyone using this environment." For a solo account like Daniel's, this is effectively fine — no one else has access. Note: if the environment is ever shared with collaborators, the `SUPABASE_SERVICE_KEY` would be visible to them. In that case, rotate the key and either use a scoped Secret API key (Supabase's newer rotatable credentials) or move to a setup-script-based secret fetch.
 
 ### Job Search Resume Links Don't Work
 **Severity: Low** | **Status: Open**
@@ -202,6 +266,9 @@ Built a full briefs management UI (13-step pipeline, batch operations, import, f
 | Apr 10, 2026 | v0.7.1 | Added project dropdown and Tomorrow to quick-add, editable task names |
 | Apr 10, 2026 | v0.7.2 | Updated sync task to only replace data arrays (not full file rewrite) |
 | Apr 10, 2026 | — | Created starter kit for sharing, wrote this system doc |
+| Apr 11, 2026 | v0.8 | Migrated data layer to Supabase; dashboard now loads from DB, no more embedded arrays; added `SUPABASE_SERVICE_KEY` env var fallback |
+| Apr 11, 2026 | v0.8.1 | Replaced 60s full-page reload with silent Supabase poll (preserves view state) |
+| Apr 12, 2026 | v0.9 | Enabled mobile task creation via claude.ai/code; moved skill to `.claude/skills/task-manager/` for cross-device auto-load; added `CLAUDE.md` as session entry point; added "Working Across Devices" section |
 
 ### Plugin Versions
 - **v0.6.0** — Current. Updated job fields, project system, job search board docs.
@@ -212,18 +279,17 @@ Built a full briefs management UI (13-step pipeline, batch operations, import, f
 
 ### Near-term
 - [ ] Fix scheduled task folder access (do "Run now" + "Always allow" on job scan tasks)
-- [ ] Monitor sync task behavior after the "only replace data arrays" fix
 - [ ] Decide on brief pipeline: fully commit to Monday-first or keep dashboard UI
 - [ ] Upload resumes/summaries to Google Drive (blocked on Drive upload MCP)
+- [ ] Consider migrating from legacy Supabase `service_role` key to newer Secret API keys (individually rotatable)
 
 ### Medium-term
-- [ ] Multi-device access — see `scope-multi-device-task-manager.md` for full analysis
-  - Phase 1: Host dashboard on GitHub Pages + JSON in GitHub repo (any device can view)
-  - Phase 2: PWA + Supabase for full mobile app with quick-add
-- [ ] Mobile quick-add (Telegram bot, Apple Shortcut, or PWA)
-- [ ] Capture browser-side edits back to JSON (close the localStorage gap)
+- [x] ~~Multi-device access~~ — **Done (v0.8 + v0.9):** Dashboard is hosted on Vercel, backed by Supabase; Claude Code skill loads cross-device from `.claude/skills/task-manager/`. See `scope-multi-device-task-manager.md` for the original planning analysis.
+- [x] ~~Mobile quick-add~~ — **Done (v0.9):** claude.ai/code on phone now creates tasks directly to Supabase using the shared skill.
+- [x] ~~Capture browser-side edits~~ — **Done (v0.8):** Dashboard writes directly to Supabase; no more localStorage gap for task data.
 - [ ] Auto-archive jobs with no activity after 4 weeks
 - [ ] Notification system (upcoming due dates, gated items ready to run)
+- [ ] Install the skill as a Claude Code plugin globally (so it works outside this repo) — may not be needed now that repo-attached skill works cross-device
 
 ### Someday/Maybe
 - [ ] Slack/email integration for task creation ("email a special inbox to create a task")

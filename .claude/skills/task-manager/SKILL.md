@@ -28,9 +28,11 @@ else
 fi
 ```
 
-This works on Daniel's local machine (reads the config file) and in cloud Claude Code sessions (falls back to the `SUPABASE_SERVICE_KEY` environment variable). The env var is set once in Claude Code Settings → Environment.
+This works in both contexts:
+- **Local machine (desktop CLI)**: reads the gitignored `data/supabase-config.json` file
+- **claude.ai/code web/mobile**: falls back to the `SUPABASE_SERVICE_KEY` env var, which is set once in the environment config at claude.ai/code → select your environment → Settings icon → **Environment variables** field (format: `SUPABASE_SERVICE_KEY=eyJ...` on a single line, no quotes)
 
-Use the **service role key** for all writes from Claude (it bypasses RLS).
+Use the **service role key** (or a Secret API key with equivalent permissions) for all writes from Claude — it bypasses RLS.
 
 **Local files still exist** as a record/backup:
 ```

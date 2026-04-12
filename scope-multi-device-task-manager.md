@@ -1,5 +1,7 @@
 # Cool Hits 2.0 — Multi-Device Scope
 
+> **STATUS (April 2026): Historical planning doc. Phase 1 and most of Phase 2 are now implemented.** The system uses Option A (PWA + Supabase) architecture: dashboard hosted on Vercel, data in Supabase, Claude Code skill loads cross-device from `.claude/skills/task-manager/`. See `SYSTEM-DOC.md` for the current state and `CLAUDE.md` for the operational guide. This doc is preserved for the trade-off analysis and rationale.
+
 ## The Problem
 
 Daniel needs his task manager accessible from three contexts:
