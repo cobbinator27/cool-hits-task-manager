@@ -1619,9 +1619,10 @@ body {
 <div id="loginScreen">
   <div class="login-card">
     <h2>Daniel's Cool Hits 2.0</h2>
-    <p>Enter your email to receive a magic link and sign in.</p>
-    <input type="email" id="loginEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')sendMagicLink()">
-    <button onclick="sendMagicLink()">Send Magic Link</button>
+    <p>Sign in to your dashboard.</p>
+    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()">
+    <button onclick="signIn()">Sign In</button>
     <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
@@ -3899,19 +3900,23 @@ async function loadFromSupabase() {
 }
 
 // --- Auth ---
-async function sendMagicLink() {
+async function signIn() {
   var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
   var msg = document.getElementById('loginMsg');
-  if (!email) { msg.textContent = 'Please enter your email.'; return; }
-  msg.textContent = 'Sending…';
+  if (!email || !password) { msg.textContent = 'Please enter your email and password.'; msg.className = 'login-msg error'; return; }
+  msg.textContent = 'Signing in…';
   msg.className = 'login-msg';
-  var result = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+  var result = await sb.auth.signInWithPassword({ email: email, password: password });
   if (result.error) {
     msg.textContent = 'Error: ' + result.error.message;
     msg.className = 'login-msg error';
   } else {
-    msg.textContent = 'Magic link sent! Check your email and click the link.';
-    msg.className = 'login-msg success';
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    await loadFromSupabase();
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    renderDashboard();
   }
 }
 
@@ -3966,12 +3971,6 @@ async function init() {
     loadState();
     renderDashboard();
     return;
-  }
-
-  // Handle magic link callback in URL hash (Supabase sets session from URL automatically)
-  if (window.location.hash && window.location.hash.includes('access_token')) {
-    await sb.auth.getSession(); // let Supabase parse and store the token
-    window.history.replaceState(null, '', window.location.pathname); // clean up URL
   }
 
   var sessionResult = await sb.auth.getSession();
