@@ -4091,15 +4091,23 @@ async function init() {
     return;
   }
 
-  // Listen for PASSWORD_RECOVERY event — Supabase fires this when a reset link is clicked
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('loadingOverlay').classList.add('hidden');
-      document.getElementById('loginNormal').classList.add('hidden');
-      document.getElementById('loginReset').classList.remove('hidden');
+  // Handle password reset link — parse tokens from hash and explicitly set session
+  if (window.location.hash && window.location.hash.includes('type=recovery')) {
+    var hashParams = new URLSearchParams(window.location.hash.substring(1));
+    var accessToken = hashParams.get('access_token');
+    var refreshToken = hashParams.get('refresh_token');
+    window.history.replaceState(null, '', window.location.pathname);
+    if (accessToken) {
+      var setResult = await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' });
+      if (!setResult.error) {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('loginNormal').classList.add('hidden');
+        document.getElementById('loginReset').classList.remove('hidden');
+        return;
+      }
     }
-  });
+  }
 
   var sessionResult = await sb.auth.getSession();
   var session = sessionResult.data && sessionResult.data.session;
