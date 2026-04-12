@@ -3937,14 +3937,21 @@ function renderDashboard() {
     if (savedJobView) setJobView(savedJobView);
   } catch(e) {}
   setInterval(updateSyncTime, 60000);
-  setInterval(function(){
-    var active = document.activeElement;
-    var userBusy = (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'))
-      || document.querySelector('.task-detail.open, .list-row-detail.open, .job-detail.open') !== null
-      || (document.getElementById('workAddInput') && document.getElementById('workAddInput').value.trim())
-      || (document.getElementById('personalAddInput') && document.getElementById('personalAddInput').value.trim());
-    if (!userBusy) location.reload();
-  }, 60000);
+  // Poll for remote changes every 3 minutes — silently re-render if data changed
+  if (window.location.protocol !== 'file:' && sb) {
+    var _lastKnownSync = LAST_SYNC;
+    setInterval(async function() {
+      try {
+        var res = await sb.from('sync_meta').select('value').eq('key', 'last_sync').single();
+        var remoteSync = res.data && res.data.value;
+        if (remoteSync && remoteSync !== _lastKnownSync) {
+          _lastKnownSync = remoteSync;
+          await loadFromSupabase();
+          renderDashboard();
+        }
+      } catch(e) {}
+    }, 3 * 60 * 1000);
+  }
 }
 
 // --- Init ---
