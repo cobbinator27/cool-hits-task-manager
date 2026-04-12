@@ -1198,6 +1198,80 @@ body {
   .board { grid-template-columns: 1fr; }
 }
 
+/* ===== MOBILE (< 600px) ===== */
+@media (max-width: 600px) {
+  /* Padding reduction */
+  .header, .alert-bar, .tab-bar, .sub-tab-bar,
+  .view-controls, .quick-add, .completed-header,
+  .completed-body, .list-group-header, .list-row,
+  .briefs-stats, .briefs-filters, .briefs-compose-toolbar,
+  .brief-detail-header, .brief-detail-body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Quick-add: wrap into rows */
+  .quick-add {
+    flex-wrap: wrap;
+  }
+  .quick-add input {
+    flex: 1 1 100%;
+  }
+  .quick-add select {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .quick-add button {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  /* View controls: wrap and hide labels */
+  .view-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .view-controls label {
+    display: none;
+  }
+
+  /* Header: tighten */
+  .header h1 { font-size: 16px; }
+}
+
+/* ===== JOB GRID SINGLE COLUMN ===== */
+@media (max-width: 500px) {
+  .job-grid { grid-template-columns: 1fr; }
+  .job-grid-col { border-right: none; }
+}
+
+/* ===== TOUCH DEVICES ===== */
+@media (hover: none) {
+  .task-actions { display: flex; }
+  .list-row-actions { opacity: 1; }
+  .task-action-btn {
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  /* Checkbox: invisible 44px hit area */
+  .task-check, .list-row-check {
+    position: relative;
+  }
+  .task-check::before, .list-row-check::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: -14px;
+    right: -14px;
+    bottom: -14px;
+  }
+}
+
 /* ===== BRIEFS TAB STYLES ===== */
 #tab-briefs.active {
   display: flex !important;
