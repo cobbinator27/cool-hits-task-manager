@@ -2957,7 +2957,7 @@ function renderJobBoard() {
   } else {
     renderJobPipeline();
   }
-  document.getElementById('jobCount').textContent = jobListings.filter(function(j){ return j.status !== 'Archived' && j.status !== 'Declined'; }).length;
+  document.getElementById('jobCount').textContent = jobListings.filter(function(j){ return j.status === 'New'; }).length;
 }
 
 function renderJobGrid() {
