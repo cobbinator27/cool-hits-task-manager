@@ -4081,6 +4081,10 @@ function renderDashboard() {
 loadTheme();
 
 async function init() {
+  // Always start with normal login form visible, reset form hidden
+  document.getElementById('loginNormal').classList.remove('hidden');
+  document.getElementById('loginReset').classList.add('hidden');
+
   // Running locally (file://) — skip auth, use localStorage directly
   if (window.location.protocol === 'file:') {
     document.getElementById('loginScreen').classList.add('hidden');
