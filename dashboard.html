@@ -2935,8 +2935,8 @@ function switchPersonalView(view) {
   try { localStorage.setItem('coolhits_personalView', view); } catch(e) {}
 }
 
-var JOB_STAGES = ['New','Applied','Contacted','Declined','Archived'];
-var JOB_STAGE_COLORS = { New:'var(--blue)', Applied:'var(--purple)', Contacted:'var(--green)', Declined:'var(--red)', Archived:'var(--gray)' };
+var JOB_STAGES = ['New','Reviewed','Applied','Contacted','Declined','Archived'];
+var JOB_STAGE_COLORS = { New:'var(--blue)', Reviewed:'var(--amber)', Applied:'var(--purple)', Contacted:'var(--green)', Declined:'var(--red)', Archived:'var(--gray)' };
 var CONTACTED_SUBS = ['Promised Resume Review','Recruiter Screen','Interview Stage','Offer'];
 var DECLINED_SUBS = ['I Declined','Company Declined'];
 var jobViewMode = 'grid';
@@ -2965,9 +2965,9 @@ function renderJobGrid() {
   // Grid layout:
   // Row 1: Tier 1 (New/Applied) | Tier 2 (New/Applied) | Contacted
   // Row 2: Tier 3 (New/Applied) | Declined              | Archived
-  var tier1 = jobListings.filter(function(j){ return j.tier === 1 && (j.status === 'New' || j.status === 'Applied'); });
-  var tier2 = jobListings.filter(function(j){ return j.tier === 2 && (j.status === 'New' || j.status === 'Applied'); });
-  var tier3 = jobListings.filter(function(j){ return j.tier === 3 && (j.status === 'New' || j.status === 'Applied'); });
+  var tier1 = jobListings.filter(function(j){ return j.tier === 1 && (j.status === 'New' || j.status === 'Reviewed' || j.status === 'Applied'); });
+  var tier2 = jobListings.filter(function(j){ return j.tier === 2 && (j.status === 'New' || j.status === 'Reviewed' || j.status === 'Applied'); });
+  var tier3 = jobListings.filter(function(j){ return j.tier === 3 && (j.status === 'New' || j.status === 'Reviewed' || j.status === 'Applied'); });
   var contacted = jobListings.filter(function(j){ return j.status === 'Contacted'; });
   var declined = jobListings.filter(function(j){ return j.status === 'Declined'; });
   var archived = jobListings.filter(function(j){ return j.status === 'Archived'; });
@@ -3019,7 +3019,7 @@ function renderJobCard(job) {
     + '<div class="job-badges">'
     + '<span class="badge '+badgeClass+'">Tier '+job.tier+'</span>'
     + (job.score ? '<span class="badge" style="background:var(--accent);color:#fff">'+escHtml(job.score)+'</span>' : '')
-    + (function(){ var sc = {New:'badge-status-deck',Applied:'badge-status-progress',Contacted:'badge-seo',Declined:'badge-critical',Archived:'badge-low'}; return '<span class="badge '+(sc[job.status]||'badge-low')+'">'+escHtml(job.status)+'</span>'; })()
+    + (function(){ var sc = {New:'badge-status-deck',Reviewed:'badge-medium',Applied:'badge-status-progress',Contacted:'badge-seo',Declined:'badge-critical',Archived:'badge-low'}; return '<span class="badge '+(sc[job.status]||'badge-low')+'">'+escHtml(job.status)+'</span>'; })()
     + (job.subStatus ? '<span class="badge" style="background:'+(job.status==='Contacted'?'var(--green-dim);color:var(--green)':job.status==='Declined'?'var(--red-dim);color:var(--red)':'var(--gray-dim);color:var(--gray)')+'">'+escHtml(job.subStatus)+'</span>' : '')
     + (job.salary ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.salary)+'</span>' : '')
     + (job.location ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.location)+'</span>' : '')
