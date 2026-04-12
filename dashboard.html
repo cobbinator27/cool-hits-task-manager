@@ -1618,13 +1618,24 @@ body {
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="login-card">
-    <h2>Daniel's Cool Hits 2.0</h2>
-    <p>Sign in to your dashboard.</p>
-    <form onsubmit="signIn();return false;">
-      <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
-      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-      <button type="submit">Sign In</button>
-    </form>
+    <div id="loginNormal">
+      <h2>Daniel's Cool Hits 2.0</h2>
+      <p>Sign in to your dashboard.</p>
+      <form onsubmit="signIn();return false;">
+        <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
+        <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+    <div id="loginReset" class="hidden">
+      <h2>Set New Password</h2>
+      <p>Choose a new password for your dashboard.</p>
+      <form onsubmit="setNewPassword();return false;">
+        <input type="password" id="resetPassword" placeholder="New password" autocomplete="new-password">
+        <input type="password" id="resetPasswordConfirm" placeholder="Confirm new password" autocomplete="new-password">
+        <button type="submit">Set Password</button>
+      </form>
+    </div>
     <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
@@ -3922,6 +3933,30 @@ async function signIn() {
   }
 }
 
+async function setNewPassword() {
+  var pw = document.getElementById('resetPassword').value;
+  var pw2 = document.getElementById('resetPasswordConfirm').value;
+  var msg = document.getElementById('loginMsg');
+  if (!pw) { msg.textContent = 'Please enter a password.'; msg.className = 'login-msg error'; return; }
+  if (pw !== pw2) { msg.textContent = 'Passwords do not match.'; msg.className = 'login-msg error'; return; }
+  msg.textContent = 'Saving…';
+  msg.className = 'login-msg';
+  var result = await sb.auth.updateUser({ password: pw });
+  if (result.error) {
+    msg.textContent = 'Error: ' + result.error.message;
+    msg.className = 'login-msg error';
+  } else {
+    msg.textContent = 'Password set! Loading your dashboard…';
+    msg.className = 'login-msg success';
+    document.getElementById('loginReset').classList.add('hidden');
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    document.getElementById('loginScreen').classList.add('hidden');
+    await loadFromSupabase();
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    renderDashboard();
+  }
+}
+
 function renderDashboard() {
   loadBriefState();
   migrateNotesToComments(workTasks);
@@ -3972,6 +4007,17 @@ async function init() {
     loadTaskOrder();
     loadState();
     renderDashboard();
+    return;
+  }
+
+  // Detect password reset link (Supabase puts type=recovery in the URL hash)
+  if (window.location.hash && window.location.hash.includes('type=recovery')) {
+    await sb.auth.getSession(); // let Supabase parse the token into a session
+    window.history.replaceState(null, '', window.location.pathname);
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    document.getElementById('loginNormal').classList.add('hidden');
+    document.getElementById('loginReset').classList.remove('hidden');
     return;
   }
 
