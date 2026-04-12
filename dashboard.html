@@ -1620,9 +1620,11 @@ body {
   <div class="login-card">
     <h2>Daniel's Cool Hits 2.0</h2>
     <p>Sign in to your dashboard.</p>
-    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
-    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()">
-    <button onclick="signIn()">Sign In</button>
+    <form onsubmit="signIn();return false;">
+      <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <button type="submit">Sign In</button>
+    </form>
     <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
