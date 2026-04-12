@@ -3951,6 +3951,16 @@ function renderDashboard() {
 loadTheme();
 
 async function init() {
+  // Running locally (file://) — skip auth, use localStorage directly
+  if (window.location.protocol === 'file:') {
+    document.getElementById('loginScreen').classList.add('hidden');
+    loadDeletedIds();
+    loadTaskOrder();
+    loadState();
+    renderDashboard();
+    return;
+  }
+
   // Handle magic link callback in URL hash (Supabase sets session from URL automatically)
   if (window.location.hash && window.location.hash.includes('access_token')) {
     await sb.auth.getSession(); // let Supabase parse and store the token
