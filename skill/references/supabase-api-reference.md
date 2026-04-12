@@ -6,27 +6,24 @@ This document is the single source of truth for reading from and writing to the 
 
 ## Credentials
 
-### If running on Daniel's personal machine
-Read credentials from:
-```
-/Users/danielcobb/Documents/task-manager/data/supabase-config.json
-```
-```json
-{
-  "url": "https://bpfvcniuhfzfvigktfci.supabase.co",
-  "serviceRoleKey": "<secret — read from file>",
-  "anonKey": "<read from file>"
-}
-```
-Use the **service role key** for all writes. It bypasses Row Level Security (RLS).
+Load credentials with this Bash snippet at the start of any task:
 
-### If running on another machine (e.g. Cowork)
-Ask Daniel to provide the service role key at the start of the task, or store a copy of `supabase-config.json` at the same path on that machine.
+```bash
+CONFIG_FILE="/Users/danielcobb/Documents/task-manager/data/supabase-config.json"
+if [ -f "$CONFIG_FILE" ]; then
+  SUPABASE_URL=$(cat "$CONFIG_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['url'])")
+  SUPABASE_KEY=$(cat "$CONFIG_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['serviceRoleKey'])")
+else
+  SUPABASE_URL="https://bpfvcniuhfzfvigktfci.supabase.co"
+  SUPABASE_KEY="$SUPABASE_SERVICE_KEY"
+fi
+```
 
-The Supabase project URL is always:
-```
-https://bpfvcniuhfzfvigktfci.supabase.co
-```
+**How it resolves:**
+- **Local machine** — reads `supabase-config.json` (gitignored, never committed)
+- **Cloud Claude Code / Cowork / any other session** — falls back to the `SUPABASE_SERVICE_KEY` environment variable
+
+Set `SUPABASE_SERVICE_KEY` once in Claude Code Settings → Environment on each machine or account that needs it. Use the **service role key** for all writes (bypasses RLS).
 
 ---
 

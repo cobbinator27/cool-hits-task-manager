@@ -15,21 +15,22 @@ Monday.com  ──sync task──>  Supabase DB  <──read/write──  dashbo
                                                           any device / browser
 ```
 
-**Supabase credentials** are stored locally in:
-```
-/Users/danielcobb/Documents/task-manager/data/supabase-config.json
+**Supabase credentials** — load them with this Bash command at the start of any operation:
+
+```bash
+CONFIG_FILE="/Users/danielcobb/Documents/task-manager/data/supabase-config.json"
+if [ -f "$CONFIG_FILE" ]; then
+  SUPABASE_URL=$(cat "$CONFIG_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['url'])")
+  SUPABASE_KEY=$(cat "$CONFIG_FILE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['serviceRoleKey'])")
+else
+  SUPABASE_URL="https://bpfvcniuhfzfvigktfci.supabase.co"
+  SUPABASE_KEY="$SUPABASE_SERVICE_KEY"
+fi
 ```
 
-Read this file at the start of any operation that writes to Supabase. It contains:
-```json
-{
-  "url": "https://YOUR_PROJECT.supabase.co",
-  "serviceRoleKey": "YOUR_SERVICE_ROLE_KEY",
-  "anonKey": "YOUR_ANON_KEY"
-}
-```
+This works on Daniel's local machine (reads the config file) and in cloud Claude Code sessions (falls back to the `SUPABASE_SERVICE_KEY` environment variable). The env var is set once in Claude Code Settings → Environment.
 
-Use the **service role key** for all writes from Claude (it bypasses RLS). Use the **anon key** only for reference — it's what the browser uses.
+Use the **service role key** for all writes from Claude (it bypasses RLS).
 
 **Local files still exist** as a record/backup:
 ```
