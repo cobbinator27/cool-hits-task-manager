@@ -1,0 +1,3986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Daniel's Cool Hits 2.0</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #161922;
+  --surface-2: #1c1f2b;
+  --surface-hover: #242838;
+  --border: #2a2e3a;
+  --border-light: #353a4a;
+  --text: #e4e4e7;
+  --text-dim: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139,92,246,0.12);
+  --pink: #ec4899;
+  --pink-dim: rgba(236,72,153,0.12);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --indigo: #6366f1;
+  --indigo-dim: rgba(99,102,241,0.12);
+  --gray: #6b7280;
+  --gray-dim: rgba(107,114,128,0.12);
+}
+
+/* ===== LIGHT MODE ===== */
+body.light {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f0f0f2;
+  --surface-hover: #e8e8ec;
+  --border: #d4d4d8;
+  --border-light: #c0c0c8;
+  --text: #18181b;
+  --text-dim: #3f3f46;
+  --text-muted: #71717a;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --green: #16a34a;
+  --green-dim: rgba(22,163,74,0.1);
+  --red: #dc2626;
+  --red-dim: rgba(220,38,38,0.08);
+  --amber: #d97706;
+  --amber-dim: rgba(217,119,6,0.08);
+  --purple: #7c3aed;
+  --purple-dim: rgba(124,58,237,0.08);
+  --pink: #db2777;
+  --pink-dim: rgba(219,39,119,0.08);
+  --blue: #2563eb;
+  --blue-dim: rgba(37,99,235,0.08);
+  --indigo: #4f46e5;
+  --indigo-dim: rgba(79,70,229,0.08);
+  --gray: #6b7280;
+  --gray-dim: rgba(107,114,128,0.08);
+}
+
+body.light .detail-date { color-scheme: light; }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+.header-meta { display: flex; align-items: center; gap: 16px; }
+.sync-badge { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ===== ALERT BAR ===== */
+.alert-bar {
+  background: var(--red-dim);
+  border-bottom: 1px solid rgba(239,68,68,0.2);
+  padding: 8px 24px;
+  font-size: 12px;
+  color: var(--red);
+  display: none;
+}
+.alert-bar.visible { display: flex; align-items: center; gap: 8px; }
+
+/* ===== TABS ===== */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+}
+
+.tab {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.tab:hover { color: var(--text-dim); }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+.tab .tab-count {
+  background: var(--surface-hover);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  margin-left: 6px;
+  color: var(--text-dim);
+}
+
+/* ===== WORK SUB-TABS ===== */
+.sub-tab-bar {
+  padding: 10px 24px;
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.sub-tab {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sub-tab:hover { border-color: var(--border-light); color: var(--text-dim); }
+.sub-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ===== QUICK ADD ===== */
+.quick-add {
+  padding: 12px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick-add input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.quick-add input:focus { border-color: var(--accent); }
+.quick-add input::placeholder { color: var(--text-muted); }
+
+.quick-add select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.quick-add button {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.quick-add button:hover { background: var(--accent-hover); }
+
+/* ===== BOARD LAYOUT ===== */
+.board {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+
+.board-column {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.board-column:nth-child(3n) { border-right: none; }
+
+/* ===== COMPLETED SECTION ===== */
+.completed-section {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  margin: 0;
+}
+
+.completed-header {
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.completed-header:hover { color: var(--text-dim); }
+
+.completed-header .arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+  font-size: 10px;
+}
+
+.completed-header .arrow.open { transform: rotate(90deg); }
+
+.completed-body {
+  display: none;
+  padding: 8px 24px 16px;
+}
+
+.completed-body.open { display: block; }
+
+.completed-body .task-card {
+  max-width: 500px;
+  margin-bottom: 6px;
+}
+
+.col-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
+.col-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.col-header .col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.col-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.col-body {
+  padding: 8px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 100px;
+}
+
+.col-body.drag-over {
+  background: rgba(99,102,241,0.05);
+}
+
+/* ===== TASK CARDS ===== */
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: grab;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.task-card:hover { border-color: var(--border-light); background: var(--surface-2); }
+.task-card.dragging { opacity: 0.4; }
+.drop-indicator { height: 2px; background: var(--accent); border-radius: 2px; margin: 2px 4px; pointer-events: none; }
+.task-card.completed { opacity: 0.45; }
+.task-card.completed .task-name { text-decoration: line-through; }
+
+.task-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.task-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.task-check:hover { border-color: var(--green); }
+.task-card.completed .task-check {
+  background: var(--green);
+  border-color: var(--green);
+}
+.task-card.completed .task-check::after {
+  content: '\2713';
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.task-content { flex: 1; min-width: 0; }
+
+.task-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.task-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.task-name a:hover { color: var(--accent-hover); }
+
+.task-badges {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.badge-critical { background: var(--red-dim); color: var(--red); }
+.badge-boulder { background: var(--purple-dim); color: var(--purple); }
+.badge-pebble { background: var(--indigo-dim); color: var(--indigo); }
+.badge-high { background: var(--red-dim); color: var(--red); }
+.badge-medium { background: var(--amber-dim); color: var(--amber); }
+.badge-low { background: var(--gray-dim); color: var(--gray); }
+
+.badge-seo { background: var(--blue-dim); color: var(--blue); }
+.badge-content { background: var(--pink-dim); color: var(--pink); }
+.badge-local { background: var(--gray-dim); color: var(--gray); }
+
+.badge-status-progress { background: var(--blue-dim); color: var(--blue); }
+.badge-status-deck { background: var(--amber-dim); color: var(--amber); }
+.badge-status-blocked { background: var(--red-dim); color: var(--red); }
+.badge-status-notstarted { background: var(--gray-dim); color: var(--gray); }
+
+.badge-project {
+  background: var(--green-dim);
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.badge-project-hub {
+  background: var(--green);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.task-card.project-hub { border-left: 3px solid var(--green); }
+.list-row.project-hub { border-left: 3px solid var(--green); }
+
+/* ===== PROJECT FILTER ===== */
+.project-filter {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+
+.task-due {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.task-due.overdue { color: var(--red); font-weight: 600; }
+
+.task-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  gap: 4px;
+}
+
+.task-card:hover .task-actions { display: flex; }
+
+.task-action-btn {
+  background: var(--surface-hover);
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.task-action-btn:hover { background: var(--border); color: var(--text); }
+.task-action-btn.delete:hover { background: var(--red-dim); color: var(--red); }
+
+/* ===== EXPANDABLE DETAIL / NOTES ===== */
+
+.task-detail {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.task-detail.open { display: block; }
+
+/* ===== COMMENT FEED ===== */
+.comment-composer {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.comment-input {
+  flex: 1;
+  min-height: 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.comment-input:focus { border-color: var(--accent); }
+.comment-input::placeholder { color: var(--text-muted); }
+
+.comment-post-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.comment-post-btn:hover { background: var(--accent-hover); }
+
+.comment-monday-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.comment-monday-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.comment-feed {
+  max-height: 400px;
+  overflow-y: auto;
+  transition: max-height 0.2s;
+}
+
+.comment-feed.expanded { max-height: none; }
+
+.comment-item {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.comment-item:last-child { border-bottom: none; }
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.comment-source-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.comment-source-badge.monday { background: var(--blue-dim); color: var(--blue); }
+.comment-source-badge.local { background: var(--gray-dim); color: var(--text-muted); }
+.comment-source-badge.pending { background: var(--amber-dim); color: var(--amber); }
+
+.comment-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.comment-item:hover .comment-actions { opacity: 1; }
+
+.comment-action {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 10px;
+  transition: color 0.15s;
+}
+
+.comment-action:hover { color: var(--text); }
+.comment-action.delete:hover { color: var(--red); }
+
+.comment-edit-area {
+  width: 100%;
+  min-height: 32px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.comment-edit-actions button {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.comment-edit-actions .save-btn { background: var(--accent); color: #fff; }
+.comment-edit-actions .save-btn:hover { background: var(--accent-hover); }
+.comment-edit-actions .cancel-btn { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+.comment-edit-actions .cancel-btn:hover { background: var(--surface-hover); }
+
+.comment-text {
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-text a {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-decoration-color: rgba(129,140,248,0.4);
+}
+
+.comment-text a:hover { text-decoration-color: var(--accent-hover); }
+
+.comment-show-toggle {
+  font-size: 10px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+
+.comment-show-toggle:hover { color: var(--accent-hover); }
+
+.comment-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 4px 0;
+  font-style: italic;
+}
+
+.task-detail-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.task-detail-meta span { display: flex; align-items: center; gap: 3px; }
+
+.task-detail-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.detail-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.detail-select:focus { border-color: var(--accent); }
+.detail-select:hover { border-color: var(--border-light); }
+
+.detail-date {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 8px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  color-scheme: dark;
+}
+
+.detail-date:focus { border-color: var(--accent); }
+.detail-date:hover { border-color: var(--border-light); }
+
+/* ===== CONTENT PIPELINE VIEW ===== */
+.pipeline {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  min-height: calc(100vh - 200px);
+}
+
+.pipe-col {
+  min-width: 200px;
+  flex: 1;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.pipe-col:last-child { border-right: none; }
+
+.pipe-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+}
+
+.pipe-body { padding: 6px; flex: 1; overflow-y: auto; }
+
+.pipe-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.pipe-card.is-daniel { border-left: 3px solid var(--accent); }
+
+.pipe-card .pipe-title {
+  font-weight: 500;
+  font-size: 12px;
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+.pipe-card .pipe-title a { color: inherit; text-decoration: none; }
+.pipe-card .pipe-title a:hover { color: var(--accent-hover); }
+
+.pipe-card .pipe-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pipe-card .pipe-meta .overdue { color: var(--red); }
+
+/* ===== TAB CONTENT ===== */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ===== VIEW CONTROLS ===== */
+.view-controls {
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.view-controls label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-toggle-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.view-toggle-btn:not(:last-child) { border-right: 1px solid var(--border); }
+.view-toggle-btn:hover { color: var(--text-dim); background: var(--surface-hover); }
+.view-toggle-btn.active { background: var(--accent); color: white; }
+
+.group-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ===== LIST VIEW ===== */
+.list-view { padding: 0; }
+
+.list-group {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.list-group:last-child { margin-bottom: 0; }
+
+.list-group-header {
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.list-group-header:hover { background: var(--surface-2); }
+
+.list-group-header .arrow {
+  font-size: 9px;
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.list-group-header .arrow.open { transform: rotate(90deg); }
+
+.list-group-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-group-header .col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.list-group-header .col-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: auto;
+}
+
+.list-group-body { }
+
+.list-group-body.collapsed { display: none; }
+
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.list-row:hover { background: var(--surface); }
+.list-row:last-child { border-bottom: none; }
+
+.list-row.completed { opacity: 0.45; }
+.list-row.completed .list-row-name { text-decoration: line-through; }
+
+.list-row-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.list-row-check:hover { border-color: var(--green); }
+
+.list-row.completed .list-row-check {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.list-row.completed .list-row-check::after {
+  content: '\2713';
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.list-row-content { flex: 1; min-width: 0; }
+
+.list-row-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.list-row-name a { color: inherit; text-decoration: none; }
+.list-row-name a:hover { color: var(--accent-hover); }
+
+.list-row-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.list-row-detail {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.list-row-detail.open { display: block; }
+
+.list-row-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.list-row:hover .list-row-actions { opacity: 1; }
+
+/* ===== JOB SEARCH CARDS ===== */
+.job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.job-card:hover { border-color: var(--border-light); background: var(--surface-2); }
+.job-card.tier-1 { border-left: 3px solid var(--green); }
+.job-card.tier-2 { border-left: 3px solid var(--blue); }
+.job-card.tier-3 { border-left: 3px solid var(--gray); }
+.job-card.status-passed { opacity: 0.4; }
+
+.job-card .job-company {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.job-card .job-role {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+.job-card .job-role a { color: inherit; text-decoration: none; }
+.job-card .job-role a:hover { color: var(--accent-hover); }
+
+.job-badges { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+
+.badge-tier-1 { background: var(--green-dim); color: var(--green); }
+.badge-tier-2 { background: var(--blue-dim); color: var(--blue); }
+.badge-tier-3 { background: var(--gray-dim); color: var(--gray); }
+
+.job-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.job-detail {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.job-detail.open { display: block; }
+
+.job-detail-section {
+  margin-bottom: 8px;
+}
+
+.job-detail-section label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.job-detail-section p {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.job-detail-section a {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-decoration-color: rgba(129,140,248,0.4);
+  font-size: 12px;
+}
+
+.job-detail-section a:hover { text-decoration-color: var(--accent-hover); }
+
+.job-detail-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.job-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  gap: 4px;
+}
+
+.job-card:hover .job-actions { display: flex; }
+
+.job-watchout {
+  background: var(--red-dim);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--red);
+  line-height: 1.4;
+}
+
+/* ===== JOB GRID (2x3) ===== */
+.job-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+
+.job-grid-col {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.job-grid-col:nth-child(3n) { border-right: none; }
+.job-grid-col:nth-child(n+4) { border-bottom: none; }
+
+.job-grid-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+}
+
+.job-grid-body {
+  padding: 6px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .job-grid { grid-template-columns: 1fr 1fr; }
+  .job-grid-col:nth-child(2n) { border-right: none; }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1000px) {
+  .board { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .board { grid-template-columns: 1fr; }
+}
+
+/* ===== BRIEFS TAB STYLES ===== */
+#tab-briefs.active {
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.briefs-stats {
+  padding: 12px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.briefs-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.briefs-stat-label { color: var(--text-muted); }
+.briefs-stat-value { font-weight: 600; color: var(--text); }
+
+.briefs-filters {
+  padding: 12px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.briefs-filters select,
+.briefs-filters input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.briefs-filters select:focus,
+.briefs-filters input:focus {
+  border-color: var(--accent);
+}
+
+.briefs-filters button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.briefs-filters button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.briefs-table-container {
+  overflow-x: auto;
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.briefs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.briefs-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+
+.briefs-table th {
+  padding: 8px 12px;
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.brief-group-header {
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 11px;
+  position: sticky;
+  top: 32px;
+  z-index: 9;
+}
+
+.brief-row {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.brief-row:hover {
+  background: var(--surface-hover);
+}
+
+.brief-row.selected {
+  background: var(--accent-dim);
+}
+
+.brief-row td {
+  padding: 8px 12px;
+  vertical-align: top;
+}
+
+.brief-row-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.brief-uid {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.brief-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.brief-site-mp { background: rgba(59,130,246,0.2); color: var(--blue); }
+.brief-site-hah { background: rgba(236,72,153,0.2); color: var(--pink); }
+
+.brief-tier { background: var(--purple-dim); color: var(--purple); }
+
+.brief-status-1 { background: var(--gray-dim); color: var(--gray); }
+.brief-status-2 { background: var(--blue-dim); color: var(--blue); }
+.brief-status-3 { background: var(--blue-dim); color: var(--blue); }
+.brief-status-4 { background: var(--blue-dim); color: var(--blue); }
+.brief-status-5 { background: var(--blue-dim); color: var(--blue); }
+.brief-status-6 { background: var(--purple-dim); color: var(--purple); }
+.brief-status-7 { background: var(--purple-dim); color: var(--purple); }
+.brief-status-8 { background: var(--amber-dim); color: var(--amber); }
+.brief-status-9 { background: rgba(249,115,22,0.12); color: #f97316; }
+.brief-status-10 { background: rgba(249,115,22,0.12); color: #f97316; }
+.brief-status-11 { background: var(--green-dim); color: var(--green); }
+.brief-status-12 { background: var(--green-dim); color: var(--green); }
+.brief-status-13 { background: rgba(16,185,129,0.2); color: #059669; }
+
+.brief-status-badge.brief-gated::after {
+  content: " 🔒";
+}
+
+.brief-detail {
+  display: none;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.brief-detail.open {
+  display: block;
+}
+
+.brief-detail-content {
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.brief-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brief-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.brief-detail-value {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.brief-detail-textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: monospace;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.brief-detail-textarea:focus {
+  border-color: var(--accent);
+}
+
+.brief-detail-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px 24px 0;
+  border-top: 1px solid var(--border);
+}
+
+.brief-detail-controls button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.brief-detail-controls button:hover {
+  background: var(--accent-hover);
+}
+
+.brief-batch-bar {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  gap: 12px;
+  align-items: center;
+  z-index: 50;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.brief-batch-bar.visible {
+  display: flex;
+}
+
+.brief-batch-count {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.brief-batch-bar button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.brief-batch-bar button:hover {
+  background: var(--accent-hover);
+}
+
+.brief-batch-bar button.secondary {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.brief-batch-bar button.secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.brief-import-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.brief-import-modal.visible {
+  display: flex;
+}
+
+.brief-import-dialog {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+}
+
+.brief-import-dialog h3 {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.brief-import-dialog textarea {
+  width: 100%;
+  height: 300px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: monospace;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+
+.brief-import-dialog textarea:focus {
+  border-color: var(--accent);
+}
+
+.brief-import-dialog-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.brief-import-dialog-buttons button {
+  flex: 1;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.brief-import-dialog-buttons button:hover {
+  background: var(--accent-hover);
+}
+
+.brief-import-dialog-buttons button.cancel {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.brief-import-dialog-buttons button.cancel:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* --- Login Screen --- */
+#loginScreen { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:9999; }
+#loginScreen.hidden { display:none; }
+.login-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:40px; max-width:400px; width:90%; text-align:center; }
+.login-card h2 { margin:0 0 6px; font-size:20px; }
+.login-card p { color:var(--text-dim); font-size:13px; margin:0 0 24px; line-height:1.5; }
+.login-card input { width:100%; padding:10px 12px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; outline:none; margin-bottom:12px; box-sizing:border-box; }
+.login-card input:focus { border-color:var(--accent); }
+.login-card button { width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:600; }
+.login-card button:hover { background:var(--accent-hover); }
+.login-msg { margin-top:16px; font-size:13px; color:var(--text-dim); min-height:20px; }
+.login-msg.success { color:var(--green); }
+.login-msg.error { color:var(--red); }
+/* --- Loading overlay --- */
+#loadingOverlay { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:9998; }
+#loadingOverlay.hidden { display:none; }
+.loading-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>Daniel's Cool Hits 2.0</h2>
+    <p>Enter your email to receive a magic link and sign in.</p>
+    <input type="email" id="loginEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')sendMagicLink()">
+    <button onclick="sendMagicLink()">Send Magic Link</button>
+    <div class="login-msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Daniel's Cool Hits 2.0</h1>
+  <div class="header-meta">
+    <div class="sync-badge"><span class="sync-dot"></span> <span id="syncTime">Synced just now</span></div>
+    <button onclick="toggleTheme()" id="themeToggle" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text-dim);font-size:12px;cursor:pointer;transition:all 0.15s;">Light</button>
+  </div>
+</div>
+
+<!-- ALERT BAR -->
+<div class="alert-bar" id="alertBar"></div>
+
+<!-- MAIN TABS -->
+<div class="tab-bar">
+  <div class="tab active" data-tab="work" onclick="switchTab('work')">Work <span class="tab-count" id="workCount">0</span></div>
+  <div class="tab" data-tab="personal" onclick="switchTab('personal')">Personal <span class="tab-count" id="personalCount">0</span></div>
+  <div class="tab" data-tab="briefs" onclick="switchTab('briefs')">Briefs <span class="tab-count" id="briefsCount">0</span></div>
+</div>
+
+<!-- ==================== WORK TAB ==================== -->
+<div class="tab-content active" id="tab-work">
+  <!-- Sub tabs -->
+  <div class="sub-tab-bar">
+    <div class="sub-tab active" data-view="tasks" onclick="switchWorkView('tasks')">My Tasks</div>
+    <div class="sub-tab" data-view="content" onclick="switchWorkView('content')">Content Pipeline</div>
+  </div>
+
+  <!-- TASKS VIEW -->
+  <div id="view-tasks">
+    <div class="view-controls">
+      <label>View</label>
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" onclick="setViewMode('board','work')" id="work-view-board">Board</button>
+        <button class="view-toggle-btn" onclick="setViewMode('list','work')" id="work-view-list">List</button>
+      </div>
+      <label>Group by</label>
+      <select class="group-select" id="workGroupBy" onchange="setGrouping(this.value,'work')">
+        <option value="timeline">Timeline</option>
+        <option value="priority">Priority</option>
+        <option value="source">Source</option>
+        <option value="status">Status</option>
+        <option value="project">Project</option>
+      </select>
+      <label>Project</label>
+      <select class="project-filter" id="workProjectFilter" onchange="setProjectFilter(this.value,'work')">
+        <option value="">All Projects</option>
+      </select>
+    </div>
+    <div class="quick-add">
+      <input type="text" id="workAddInput" placeholder="Quick add a task... (Enter to add)" onkeydown="if(event.key==='Enter')addWorkTask()">
+      <select id="workAddGroup">
+        <option value="today">Today</option>
+        <option value="tomorrow">Tomorrow</option>
+        <option value="thisWeek" selected>This Week</option>
+        <option value="later">Later</option>
+        <option value="backlog">Backlog</option>
+      </select>
+      <select id="workAddPriority">
+        <option value="">No Priority</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <select id="workAddProject"><option value="">No Project</option></select>
+      <button onclick="addWorkTask()">Add Task</button>
+    </div>
+    <div class="board" id="workBoard">
+      <div class="board-column" data-group="today">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--red)"></span> Today</h3>
+          <span class="col-count" id="count-today">0</span>
+        </div>
+        <div class="col-body" id="col-today"></div>
+      </div>
+      <div class="board-column" data-group="tomorrow">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--amber)"></span> Tomorrow</h3>
+          <span class="col-count" id="count-tomorrow">0</span>
+        </div>
+        <div class="col-body" id="col-tomorrow"></div>
+      </div>
+      <div class="board-column" data-group="thisWeek">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--purple)"></span> This Week</h3>
+          <span class="col-count" id="count-thisWeek">0</span>
+        </div>
+        <div class="col-body" id="col-thisWeek"></div>
+      </div>
+      <div class="board-column" data-group="later">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--blue)"></span> Later</h3>
+          <span class="col-count" id="count-later">0</span>
+        </div>
+        <div class="col-body" id="col-later"></div>
+      </div>
+      <div class="board-column" data-group="backlog">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--gray)"></span> Backlog</h3>
+          <span class="col-count" id="count-backlog">0</span>
+        </div>
+        <div class="col-body" id="col-backlog"></div>
+      </div>
+    </div>
+    <div class="list-view" id="workListView" style="display:none"></div>
+    <!-- Completed tasks section -->
+    <div class="completed-section" id="workCompleted">
+      <div class="completed-header" onclick="toggleCompletedSection('work')">
+        <span class="arrow" id="completedArrow-work">&#9654;</span>
+        Completed <span class="col-count" id="completedCount-work">0</span>
+      </div>
+      <div class="completed-body" id="completedBody-work"></div>
+    </div>
+  </div>
+
+  <!-- CONTENT PIPELINE VIEW -->
+  <div id="view-content" style="display:none">
+    <div class="pipeline" id="contentPipeline"></div>
+  </div>
+</div>
+
+<!-- ==================== PERSONAL TAB ==================== -->
+<div class="tab-content" id="tab-personal">
+  <!-- Sub tabs -->
+  <div class="sub-tab-bar">
+    <div class="sub-tab active" data-pview="ptasks" onclick="switchPersonalView('ptasks')">My Tasks</div>
+    <div class="sub-tab" data-pview="jobs" onclick="switchPersonalView('jobs')">Job Search <span class="tab-count" id="jobCount">0</span></div>
+  </div>
+
+  <!-- PERSONAL TASKS VIEW -->
+  <div id="view-ptasks">
+    <div class="view-controls">
+      <label>View</label>
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" onclick="setViewMode('board','personal')" id="personal-view-board">Board</button>
+        <button class="view-toggle-btn" onclick="setViewMode('list','personal')" id="personal-view-list">List</button>
+      </div>
+      <label>Group by</label>
+      <select class="group-select" id="personalGroupBy" onchange="setGrouping(this.value,'personal')">
+        <option value="timeline">Timeline</option>
+        <option value="priority">Priority</option>
+        <option value="source">Source</option>
+        <option value="status">Status</option>
+        <option value="project">Project</option>
+      </select>
+      <label>Project</label>
+      <select class="project-filter" id="personalProjectFilter" onchange="setProjectFilter(this.value,'personal')">
+        <option value="">All Projects</option>
+      </select>
+    </div>
+    <div class="quick-add">
+      <input type="text" id="personalAddInput" placeholder="Quick add a personal task... (Enter to add)" onkeydown="if(event.key==='Enter')addPersonalTask()">
+      <select id="personalAddGroup">
+        <option value="today">Today</option>
+        <option value="tomorrow">Tomorrow</option>
+        <option value="thisWeek" selected>This Week</option>
+        <option value="later">Later</option>
+        <option value="backlog">Backlog</option>
+      </select>
+      <select id="personalAddPriority">
+        <option value="">No Priority</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <select id="personalAddProject"><option value="">No Project</option></select>
+      <button onclick="addPersonalTask()">Add Task</button>
+    </div>
+    <div class="board" id="personalBoard">
+      <div class="board-column" data-group="today" data-scope="personal">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--red)"></span> Today</h3>
+          <span class="col-count" id="p-count-today">0</span>
+        </div>
+        <div class="col-body" id="p-col-today"></div>
+      </div>
+      <div class="board-column" data-group="tomorrow" data-scope="personal">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--amber)"></span> Tomorrow</h3>
+          <span class="col-count" id="p-count-tomorrow">0</span>
+        </div>
+        <div class="col-body" id="p-col-tomorrow"></div>
+      </div>
+      <div class="board-column" data-group="thisWeek" data-scope="personal">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--purple)"></span> This Week</h3>
+          <span class="col-count" id="p-count-thisWeek">0</span>
+        </div>
+        <div class="col-body" id="p-col-thisWeek"></div>
+      </div>
+      <div class="board-column" data-group="later" data-scope="personal">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--blue)"></span> Later</h3>
+          <span class="col-count" id="p-count-later">0</span>
+        </div>
+        <div class="col-body" id="p-col-later"></div>
+      </div>
+      <div class="board-column" data-group="backlog" data-scope="personal">
+        <div class="col-header">
+          <h3><span class="col-dot" style="background:var(--gray)"></span> Backlog</h3>
+          <span class="col-count" id="p-count-backlog">0</span>
+        </div>
+        <div class="col-body" id="p-col-backlog"></div>
+      </div>
+    </div>
+    <div class="list-view" id="personalListView" style="display:none"></div>
+    <!-- Completed tasks section -->
+    <div class="completed-section" id="personalCompleted">
+      <div class="completed-header" onclick="toggleCompletedSection('personal')">
+        <span class="arrow" id="completedArrow-personal">&#9654;</span>
+        Completed <span class="col-count" id="completedCount-personal">0</span>
+      </div>
+      <div class="completed-body" id="completedBody-personal"></div>
+    </div>
+  </div>
+
+  <!-- JOB SEARCH VIEW -->
+  <div id="view-jobs" style="display:none">
+    <div class="view-controls">
+      <label>View</label>
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" onclick="setJobView('grid')" id="job-view-grid">Grid</button>
+        <button class="view-toggle-btn" onclick="setJobView('pipeline')" id="job-view-pipeline">Pipeline</button>
+      </div>
+    </div>
+    <div class="quick-add">
+      <input type="text" id="jobAddInput" placeholder="Add a job... (Company — Role)" onkeydown="if(event.key==='Enter')addJob()">
+      <select id="jobAddTier">
+        <option value="1">Tier 1</option>
+        <option value="2">Tier 2</option>
+        <option value="3">Tier 3</option>
+      </select>
+      <button onclick="addJob()">Add Job</button>
+    </div>
+    <div class="job-grid" id="jobGrid"></div>
+    <div class="pipeline" id="jobPipeline" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ==================== BRIEFS TAB ==================== -->
+<div class="tab-content" id="tab-briefs">
+  <!-- Stats bar -->
+  <div class="briefs-stats" id="briefsStatsBar"></div>
+
+  <!-- Filters -->
+  <div class="briefs-filters">
+    <select id="briefFilterBatch" onchange="applyBriefFilters()">
+      <option value="">Monthly Batch: All</option>
+    </select>
+    <select id="briefFilterWave" onchange="applyBriefFilters()">
+      <option value="">Research Wave: All</option>
+    </select>
+    <select id="briefFilterRunSet" onchange="applyBriefFilters()">
+      <option value="">Run Set: All</option>
+    </select>
+    <select id="briefFilterStatus" onchange="applyBriefFilters()">
+      <option value="">Status: All</option>
+    </select>
+    <select id="briefFilterSite" onchange="applyBriefFilters()">
+      <option value="">Site: All</option>
+    </select>
+    <select id="briefFilterTier" onchange="applyBriefFilters()">
+      <option value="">Tier: All</option>
+    </select>
+    <button onclick="toggleReadyFilter()" id="readyFilterBtn">Ready to Run</button>
+    <button onclick="clearBriefFilters()" style="margin-left:auto;">Clear Filters</button>
+    <button onclick="showImportModal()" style="background:var(--green);border:none;border-radius:6px;padding:6px 12px;color:white;font-size:12px;font-weight:600;cursor:pointer;">Import JSON</button>
+  </div>
+
+  <!-- Batch action bar -->
+  <div class="brief-batch-bar" id="briefBatchBar">
+    <span class="brief-batch-count" id="briefBatchCount"></span>
+    <button onclick="batchAssignWave()">Assign Wave</button>
+    <button onclick="batchAssignRunSet()">Assign Run Set</button>
+    <button onclick="batchAdvanceStatus()">Advance Status</button>
+    <button onclick="batchEditContext()" class="secondary">Edit Context</button>
+    <button onclick="clearBriefSelection()" class="secondary" style="margin-left:auto;">Clear</button>
+  </div>
+
+  <!-- Table -->
+  <div class="briefs-table-container">
+    <table class="briefs-table">
+      <thead>
+        <tr>
+          <th style="width:20px;"><input type="checkbox" id="briefSelectAll" onchange="selectAllBriefs()"></th>
+          <th style="width:60px;">UID</th>
+          <th style="min-width:150px;">Item Name</th>
+          <th style="width:80px;">Site</th>
+          <th style="width:70px;">Tier</th>
+          <th style="width:120px;">Status</th>
+          <th style="width:100px;">Content Task</th>
+          <th style="width:80px;">Traffic Op</th>
+          <th style="width:100px;">Research Wave</th>
+          <th style="width:80px;">Run Set</th>
+          <th style="width:100px;">Eligible Dates</th>
+          <th style="width:90px;">Brief Due</th>
+        </tr>
+      </thead>
+      <tbody id="briefsTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Import modal -->
+  <div class="brief-import-modal" id="briefImportModal">
+    <div class="brief-import-dialog">
+      <h3>Import MCL JSON</h3>
+      <textarea id="briefImportTextarea" placeholder="Paste MCL JSON array here..."></textarea>
+      <input type="text" id="briefImportBatchId" placeholder="Monthly Batch ID (e.g., MB-2026-04)" style="width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;outline:none;margin-bottom:12px;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--accent)'">
+      <div class="brief-import-dialog-buttons">
+        <button onclick="doImport()">Import</button>
+        <button class="cancel" onclick="hideImportModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="projectList-work"></datalist>
+<datalist id="projectList-personal"></datalist>
+
+<script>
+// =============================================================================
+// SUPABASE CONFIG — fill in your project credentials
+// =============================================================================
+var SUPABASE_URL = 'YOUR_SUPABASE_URL';
+var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// =============================================================================
+// DATA SECTION — populated from Supabase on init (arrays kept for fallback only)
+// =============================================================================
+var LAST_SYNC = 'never';
+var WORK_TASKS = [];
+var PERSONAL_TASKS = [];
+var CONTENT_PIPELINE = [];
+var JOB_LISTINGS = [];
+
+// APP LOGIC
+// =============================================================================
+let workTasks = [...WORK_TASKS];
+let personalTasks = [...PERSONAL_TASKS];
+let jobListings = [...JOB_LISTINGS];
+let nextWorkId = 100;
+let nextPersonalId = 100;
+let nextJobId = 100;
+
+// --- View state ---
+var viewMode = { work: 'board', personal: 'board' };
+var groupBy = { work: 'timeline', personal: 'timeline' };
+var projectFilter = { work: '', personal: '' }; // '' = all, 'ProjectName' = filter to that project
+
+// --- Grouping definitions ---
+var GROUPINGS = {
+  timeline: {
+    keys: ['today','tomorrow','thisWeek','later','backlog'],
+    labels: { today:'Today', tomorrow:'Tomorrow', thisWeek:'This Week', later:'Later', backlog:'Backlog' },
+    colors: { today:'var(--red)', tomorrow:'var(--amber)', thisWeek:'var(--purple)', later:'var(--blue)', backlog:'var(--gray)' },
+    getKey: function(t) { return t.group; }
+  },
+  priority: {
+    keys: ['Critical','Boulder','High','Medium','Pebble','Low','none'],
+    labels: { Critical:'Critical', Boulder:'Boulder', High:'High', Medium:'Medium', Pebble:'Pebble', Low:'Low', none:'No Priority' },
+    colors: { Critical:'var(--red)', Boulder:'var(--amber)', High:'var(--red)', Medium:'var(--amber)', Pebble:'var(--blue)', Low:'var(--gray)', none:'var(--text-muted)' },
+    getKey: function(t) { return t.priority || 'none'; }
+  },
+  source: {
+    keys: ['seo','content','local'],
+    labels: { seo:'Monday — SEO Team Ops', content:'Monday — Content Ops', local:'Local' },
+    colors: { seo:'var(--blue)', content:'var(--pink)', local:'var(--gray)' },
+    getKey: function(t) { return t.source || 'local'; }
+  },
+  status: {
+    keys: ['Working on it','In Progress','On Deck','Not Started','Blocked','Waiting','Ready for Review','Done'],
+    labels: { 'Working on it':'Working on it', 'In Progress':'In Progress', 'On Deck':'On Deck', 'Not Started':'Not Started', Blocked:'Blocked', Waiting:'Waiting', 'Ready for Review':'Ready for Review', Done:'Done' },
+    colors: { 'Working on it':'var(--amber)', 'In Progress':'var(--green)', 'On Deck':'var(--purple)', 'Not Started':'var(--text-muted)', Blocked:'var(--red)', Waiting:'var(--amber)', 'Ready for Review':'var(--blue)', Done:'var(--green)' },
+    getKey: function(t) { return t.status || 'Not Started'; }
+  },
+  project: {
+    keys: [], // dynamically populated
+    labels: {},
+    colors: {},
+    getKey: function(t) { return t.project || '_none'; },
+    dynamic: true
+  }
+};
+
+// Build project grouping keys dynamically from current tasks
+function buildProjectGrouping(tasks) {
+  var projects = {};
+  tasks.forEach(function(t) {
+    if (t.project) projects[t.project] = true;
+  });
+  var sorted = Object.keys(projects).sort();
+  sorted.push('_none');
+  var labels = {}; var colors = {};
+  var projectColors = ['var(--green)','var(--blue)','var(--purple)','var(--pink)','var(--amber)','var(--red)','var(--indigo)'];
+  sorted.forEach(function(p, i) {
+    if (p === '_none') {
+      labels[p] = 'No Project';
+      colors[p] = 'var(--text-muted)';
+    } else {
+      labels[p] = p;
+      colors[p] = projectColors[i % projectColors.length];
+    }
+  });
+  GROUPINGS.project.keys = sorted;
+  GROUPINGS.project.labels = labels;
+  GROUPINGS.project.colors = colors;
+}
+
+function setViewMode(mode, scope) {
+  viewMode[scope] = mode;
+  // Update toggle buttons
+  document.getElementById(scope+'-view-board').classList.toggle('active', mode === 'board');
+  document.getElementById(scope+'-view-list').classList.toggle('active', mode === 'list');
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+}
+
+function setGrouping(g, scope) {
+  groupBy[scope] = g;
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+}
+
+function setProjectFilter(val, scope) {
+  projectFilter[scope] = val;
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+}
+
+function applyProjectFilter(tasks, scope) {
+  var filter = projectFilter[scope];
+  if (!filter) return tasks;
+  return tasks.filter(function(t) { return t.project === filter; });
+}
+
+function populateProjectFilter(tasks, selectId) {
+  var projects = {};
+  tasks.forEach(function(t) {
+    if (t.project) projects[t.project] = true;
+  });
+  var sorted = Object.keys(projects).sort();
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All Projects</option>';
+  sorted.forEach(function(p) {
+    sel.innerHTML += '<option value="'+escHtml(p)+'"'+(p===current?' selected':'')+'>'+escHtml(p)+'</option>';
+  });
+  // Also populate the datalist for autocomplete in detail panels
+  var scope = selectId.indexOf('work') >= 0 ? 'work' : 'personal';
+  var dl = document.getElementById('projectList-'+scope);
+  if (dl) {
+    dl.innerHTML = sorted.map(function(p){ return '<option value="'+escHtml(p)+'">'; }).join('');
+  }
+  // Also populate the quick-add project dropdown
+  var addSel = document.getElementById(scope+'AddProject');
+  if (addSel) {
+    var curVal = addSel.value;
+    addSel.innerHTML = '<option value="">No Project</option>';
+    sorted.forEach(function(p) {
+      addSel.innerHTML += '<option value="'+escHtml(p)+'"'+(p===curVal?' selected':'')+'>'+escHtml(p)+'</option>';
+    });
+  }
+}
+
+// --- Tab switching ---
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="'+tab+'"]').classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  try { localStorage.setItem('coolhits_activeTab', tab); } catch(e) {}
+}
+
+function switchWorkView(view) {
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.sub-tab[data-view="'+view+'"]').classList.add('active');
+  document.getElementById('view-tasks').style.display = view === 'tasks' ? 'block' : 'none';
+  document.getElementById('view-content').style.display = view === 'content' ? 'block' : 'none';
+  if (view === 'content') renderContentPipeline();
+  try { localStorage.setItem('coolhits_workView', view); } catch(e) {}
+}
+
+// --- Rendering helpers ---
+function escHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function linkify(text) {
+  // Escape HTML first, then convert URLs to clickable links
+  var safe = escHtml(text);
+  return safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" onclick="event.stopPropagation()">$1</a>');
+}
+
+function priorityBadge(p) {
+  if (!p) return '';
+  var cls = {'Critical':'critical','Boulder':'boulder','Pebble':'pebble','High':'high','Medium':'medium','Low':'low'}[p] || 'low';
+  return '<span class="badge badge-'+cls+'">'+escHtml(p)+'</span>';
+}
+
+function sourceBadge(s) {
+  var map = {seo:'SEO',content:'Content',local:'Local'};
+  return '<span class="badge badge-'+s+'">'+(map[s]||s)+'</span>';
+}
+
+function projectBadge(task) {
+  if (!task.project) return '';
+  if (task.isProjectHub) return '<span class="badge-project-hub" title="Project Hub">&#9733; '+escHtml(task.project)+'</span>';
+  return '<span class="badge-project">'+escHtml(task.project)+'</span>';
+}
+
+function statusBadge(st) {
+  if (!st) return '';
+  var cls = 'notstarted';
+  if (st.indexOf('Progress') >= 0 || st.indexOf('Working') >= 0) cls = 'progress';
+  else if (st.indexOf('Deck') >= 0 || st.indexOf('Ready') >= 0) cls = 'deck';
+  else if (st.indexOf('Block') >= 0 || st.indexOf('Stuck') >= 0) cls = 'blocked';
+  return '<span class="badge badge-status-'+cls+'">'+escHtml(st)+'</span>';
+}
+
+function dueBadge(d) {
+  if (!d) return '';
+  var today = new Date().toISOString().split('T')[0];
+  var isOverdue = d < today;
+  var dt = new Date(d+'T00:00:00');
+  var label = dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return '<span class="task-due'+(isOverdue?' overdue':'')+'">'+(isOverdue?'Overdue: ':'')+label+'</span>';
+}
+
+function renderTaskCard(task, scope) {
+  var nameContent = task.url
+    ? '<a href="'+escHtml(task.url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+escHtml(task.name)+'</a>'
+    : escHtml(task.name);
+  var comments = task.comments || [];
+  var hasComments = comments.length > 0;
+
+  return '<div class="task-card'+(task.completed?' completed':'')+(task.isProjectHub?' project-hub':'')+'" id="task-'+task.id+'" draggable="true" ondragstart="onDragStart(event,\''+task.id+'\',\''+scope+'\')" ondragend="onDragEnd(event)" onclick="toggleDetail(\''+task.id+'\',\''+scope+'\',event)">'
+    + '<div class="task-actions">'
+    + '<button class="task-action-btn delete" onclick="event.stopPropagation();deleteTask(\''+task.id+'\',\''+scope+'\')" title="Remove">&times;</button>'
+    + '</div>'
+    + '<div class="task-top">'
+    + '<div class="task-check'+(task.completed?' checked':'')+'" onclick="event.stopPropagation();toggleComplete(\''+task.id+'\',\''+scope+'\')"></div>'
+    + '<div class="task-content">'
+    + '<div class="task-name">'+nameContent+'</div>'
+    + '<div class="task-badges">'
+    + projectBadge(task)
+    + priorityBadge(task.priority)
+    + sourceBadge(task.source || 'local')
+    + statusBadge(task.status)
+    + dueBadge(task.due)
+    + (hasComments ? '<span class="badge" style="background:var(--accent-hover);color:#fff;font-size:9px;padding:1px 5px;">'+comments.length+' update'+(comments.length>1?'s':'')+'</span>' : '')
+    + '</div>'
+    + '<div class="task-detail" id="detail-'+task.id+'">'
+    + renderDetailPanel(task, scope)
+    + '</div>'
+    + '</div></div></div>';
+}
+
+// --- Render boards ---
+// --- List view renderer ---
+function renderListView(tasks, scope, container) {
+  var filtered = applyProjectFilter(tasks, scope);
+  if (groupBy[scope] === 'project') buildProjectGrouping(filtered);
+  var grouping = GROUPINGS[groupBy[scope]];
+  var active = filtered.filter(function(t){return !t.completed;});
+
+  var html = '';
+  grouping.keys.forEach(function(key) {
+    var groupTasks = active.filter(function(t){ return grouping.getKey(t) === key; });
+    if (groupTasks.length === 0) return; // skip empty groups in list view
+
+    var rows = groupTasks.map(function(t) {
+      return renderListRow(t, scope);
+    }).join('');
+
+    html += '<div class="list-group">'
+      + '<div class="list-group-header" onclick="toggleListGroup(this)">'
+      + '<span class="arrow open">&#9654;</span>'
+      + '<h3><span class="col-dot" style="background:'+grouping.colors[key]+'"></span> '+escHtml(grouping.labels[key])+'</h3>'
+      + '<span class="col-count">'+groupTasks.length+'</span>'
+      + '</div>'
+      + '<div class="list-group-body">'
+      + rows
+      + '</div>'
+      + '</div>';
+  });
+
+  container.innerHTML = html || '<div class="empty-state">No tasks</div>';
+}
+
+function renderListRow(task, scope) {
+  var nameContent = task.url
+    ? '<a href="'+escHtml(task.url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+escHtml(task.name)+'</a>'
+    : escHtml(task.name);
+  var comments = task.comments || [];
+  var hasComments = comments.length > 0;
+
+  return '<div class="list-row'+(task.completed?' completed':'')+(task.isProjectHub?' project-hub':'')+'" onclick="toggleListDetail(\''+task.id+'\',\''+scope+'\',event)">'
+    + '<div class="list-row-check'+(task.completed?' checked':'')+'" onclick="event.stopPropagation();toggleComplete(\''+task.id+'\',\''+scope+'\')"></div>'
+    + '<div class="list-row-content">'
+    + '<div class="list-row-name">'+nameContent+'</div>'
+    + '<div class="list-row-badges">'
+    + projectBadge(task)
+    + priorityBadge(task.priority)
+    + sourceBadge(task.source || 'local')
+    + statusBadge(task.status)
+    + dueBadge(task.due)
+    + (hasComments ? '<span class="badge" style="background:var(--accent-hover);color:#fff;font-size:9px;padding:1px 5px;">'+comments.length+' update'+(comments.length>1?'s':'')+'</span>' : '')
+    + '</div>'
+    + '<div class="list-row-detail" id="list-detail-'+task.id+'">'
+    + renderDetailPanel(task, scope)
+    + '</div>'
+    + '</div>'
+    + '<div class="list-row-actions">'
+    + '<button class="task-action-btn delete" onclick="event.stopPropagation();deleteTask(\''+task.id+'\',\''+scope+'\')" title="Remove">&times;</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleListGroup(header) {
+  var body = header.nextElementSibling;
+  var arrow = header.querySelector('.arrow');
+  body.classList.toggle('collapsed');
+  arrow.classList.toggle('open');
+}
+
+function toggleListDetail(taskId, scope, event) {
+  if (event && event.target && event.target.closest && event.target.closest('.list-row-detail')) return;
+  var detail = document.getElementById('list-detail-'+taskId);
+  if (detail) detail.classList.toggle('open');
+}
+
+// --- Shared detail panel (used by both views) ---
+function renderDetailPanel(task, scope) {
+  var comments = task.comments || [];
+  var isLinked = !!task.mondayId;
+
+  var commentItems = '';
+  if (comments.length === 0) {
+    commentItems = '<div class="comment-empty">No updates yet</div>';
+  } else {
+    comments.forEach(function(c, idx) {
+      var sBadge = '';
+      if (c.source === 'monday') sBadge = '<span class="comment-source-badge monday">Monday</span>';
+      else if (c.pushToMonday && !c.pushedToMonday) sBadge = '<span class="comment-source-badge pending">Queued for Monday</span>';
+      else if (c.pushedToMonday) sBadge = '<span class="comment-source-badge monday">Sent to Monday</span>';
+
+      var ts = c.timestamp ? new Date(c.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+
+      commentItems += '<div class="comment-item" id="comment-'+task.id+'-'+idx+'">'
+        + '<div class="comment-header">'
+        + '<span>'+ts+'</span>'
+        + sBadge
+        + '<span class="comment-actions">'
+        + '<span class="comment-action" onclick="event.stopPropagation();editComment(\''+task.id+'\',\''+scope+'\','+idx+')" title="Edit">edit</span>'
+        + '<span class="comment-action delete" onclick="event.stopPropagation();deleteComment(\''+task.id+'\',\''+scope+'\','+idx+')" title="Delete">&times;</span>'
+        + '</span>'
+        + '</div>'
+        + '<div class="comment-text" id="comment-text-'+task.id+'-'+idx+'">'+linkify(c.text)+'</div>'
+        + '</div>';
+    });
+  }
+
+  return '<div class="detail-field" style="margin-bottom:8px;"><label>Name</label>'
+    + '<input type="text" class="detail-select" style="width:100%;font-weight:600;font-size:13px;" value="'+escHtml(task.name)+'" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'name\',this.value)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="task-detail-controls">'
+    + '<div class="detail-field"><label>Status</label>'
+    + '<select class="detail-select" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'status\',this.value)">'
+    + statusOptions(task.status)
+    + '</select></div>'
+    + '<div class="detail-field"><label>Priority</label>'
+    + '<select class="detail-select" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'priority\',this.value)">'
+    + priorityOptions(task.priority)
+    + '</select></div>'
+    + '<div class="detail-field"><label>Move to</label>'
+    + '<select class="detail-select" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'group\',this.value)">'
+    + groupOptions(task.group)
+    + '</select></div>'
+    + '<div class="detail-field"><label>Due date</label>'
+    + '<input type="date" class="detail-date" value="'+(task.due||'')+'" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'due\',this.value)">'
+    + '</div>'
+    + '<div class="detail-field"><label>Project</label>'
+    + '<input type="text" class="detail-select" style="min-width:100px" placeholder="None" value="'+escHtml(task.project||'')+'" onchange="changeField(\''+task.id+'\',\''+scope+'\',\'project\',this.value||null)" list="projectList-'+scope+'" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '<div class="detail-field"><label>Hub</label>'
+    + '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);cursor:pointer;" onclick="event.stopPropagation()"><input type="checkbox" '+(task.isProjectHub?'checked':'')+' onchange="changeField(\''+task.id+'\',\''+scope+'\',\'isProjectHub\',this.checked)" style="accent-color:var(--green)"> Hub</label>'
+    + '</div>'
+    + '</div>'
+    + '<div class="comment-composer">'
+    + '<textarea class="comment-input" id="comment-input-'+task.id+'" placeholder="Add an update..." onclick="event.stopPropagation()" oninput="autoGrow(this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();postComment(\''+task.id+'\',\''+scope+'\');}"></textarea>'
+    + '<div style="display:flex;flex-direction:column;gap:4px;align-items:center;">'
+    + '<button class="comment-post-btn" onclick="event.stopPropagation();postComment(\''+task.id+'\',\''+scope+'\')">Post</button>'
+    + (isLinked ? '<label class="comment-monday-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="monday-toggle-'+task.id+'"> Monday</label>' : '')
+    + '</div>'
+    + '</div>'
+    + '<div class="comment-feed" id="comment-feed-'+task.id+'">'
+    + commentItems
+    + '</div>'
+    + '<div class="task-detail-meta">'
+    + (task.mondayId ? '<span>Monday: #'+task.mondayId+'</span>' : '<span>Local only</span>')
+    + (task.project ? '<span>Project: '+escHtml(task.project)+(task.isProjectHub?' (Hub)':'')+'</span>' : '')
+    + (task.category ? '<span>'+escHtml(task.category)+'</span>' : '')
+    + (task.domain ? '<span>'+escHtml(task.domain)+'</span>' : '')
+    + '</div>';
+}
+
+// --- Board view with dynamic grouping ---
+function renderBoardGrouped(tasks, scope, boardEl, colPrefix) {
+  var filtered = applyProjectFilter(tasks, scope);
+  if (groupBy[scope] === 'project') buildProjectGrouping(filtered);
+  var grouping = GROUPINGS[groupBy[scope]];
+  var active = filtered.filter(function(t){return !t.completed;});
+
+  // Dynamically generate columns
+  var html = '';
+  grouping.keys.forEach(function(key) {
+    var groupTasks = active.filter(function(t){ return grouping.getKey(t) === key; });
+    groupTasks = getSortedGroup(groupTasks, scope, groupBy[scope], key);
+    html += '<div class="board-column" data-group="'+key+'"'+(scope==='personal'?' data-scope="personal"':'')+'>'
+      + '<div class="col-header">'
+      + '<h3><span class="col-dot" style="background:'+grouping.colors[key]+'"></span> '+escHtml(grouping.labels[key])+'</h3>'
+      + '<span class="col-count">'+groupTasks.length+'</span>'
+      + '</div>'
+      + '<div class="col-body" id="'+colPrefix+key+'">'
+      + (groupTasks.length === 0
+        ? '<div class="empty-state">No tasks</div>'
+        : groupTasks.map(function(t){return renderTaskCard(t,scope);}).join(''))
+      + '</div>'
+      + '</div>';
+  });
+
+  boardEl.innerHTML = html;
+  // Re-bind drag-drop on new columns
+  bindDragDrop(boardEl, scope);
+}
+
+function bindDragDrop(boardEl, scope) {
+  boardEl.querySelectorAll('.col-body').forEach(function(col) {
+    col.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      col.classList.add('drag-over');
+
+      // Show insertion indicator between cards
+      var indicator = col.querySelector('.drop-indicator');
+      if (!indicator) { indicator = document.createElement('div'); indicator.className = 'drop-indicator'; }
+      var cards = Array.from(col.querySelectorAll('.task-card:not(.dragging)'));
+      var targetCard = null;
+      for (var i = 0; i < cards.length; i++) {
+        var rect = cards[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) { targetCard = cards[i]; break; }
+      }
+      if (targetCard) {
+        col.insertBefore(indicator, targetCard);
+        col.dataset.dropBefore = targetCard.id.replace('task-', '');
+      } else {
+        col.appendChild(indicator);
+        delete col.dataset.dropBefore;
+      }
+    });
+    col.addEventListener('dragleave', function(e) {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+        var indicator = col.querySelector('.drop-indicator');
+        if (indicator) indicator.remove();
+        delete col.dataset.dropBefore;
+      }
+    });
+    col.addEventListener('drop', function(e) {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      var indicator = col.querySelector('.drop-indicator');
+      if (indicator) indicator.remove();
+
+      var data = e.dataTransfer.getData('text/plain').split('|');
+      var taskId = data[0];
+      var dropScope = data[1];
+      var column = col.closest('.board-column');
+      var newGroup = column.dataset.group;
+      var list = (dropScope === 'personal' || column.dataset.scope === 'personal') ? personalTasks : workTasks;
+      var task = list.find(function(t){return t.id===taskId;});
+      if (task) {
+        // Update group/field for cross-column moves
+        var currentGrouping = groupBy[dropScope];
+        if (currentGrouping === 'timeline') task.group = newGroup;
+        else if (currentGrouping === 'priority') task.priority = newGroup === 'none' ? '' : newGroup;
+        else if (currentGrouping === 'source') task.source = newGroup;
+        else if (currentGrouping === 'status') task.status = newGroup;
+        else if (currentGrouping === 'project') task.project = newGroup === '_none' ? null : newGroup;
+
+        // Update manual sort order in the target column
+        var allInGroup = list.filter(function(t){ return !t.completed && GROUPINGS[currentGrouping].getKey(t) === newGroup; });
+        var sorted = getSortedGroup(allInGroup, dropScope, currentGrouping, newGroup);
+        var without = sorted.filter(function(t){ return t.id !== taskId; });
+        var beforeId = col.dataset.dropBefore;
+        var insertIdx = without.length;
+        if (beforeId) {
+          var bIdx = without.findIndex(function(t){ return t.id === beforeId; });
+          if (bIdx >= 0) insertIdx = bIdx;
+        }
+        without.splice(insertIdx, 0, task);
+        setGroupOrder(dropScope, currentGrouping, newGroup, without);
+        delete col.dataset.dropBefore;
+
+        saveState();
+        dropScope === 'personal' ? renderPersonalBoard() : renderWorkBoard();
+      }
+    });
+  });
+}
+
+function renderWorkBoard() {
+  populateProjectFilter(workTasks, 'workProjectFilter');
+  var filtered = applyProjectFilter(workTasks, 'work');
+  var active = filtered.filter(function(t){return !t.completed;});
+  var completed = filtered.filter(function(t){return t.completed;});
+  var mode = viewMode.work;
+
+  var boardEl = document.getElementById('workBoard');
+  var listEl = document.getElementById('workListView');
+
+  if (mode === 'board') {
+    boardEl.style.display = '';
+    listEl.style.display = 'none';
+    renderBoardGrouped(workTasks, 'work', boardEl, 'col-');
+  } else {
+    boardEl.style.display = 'none';
+    listEl.style.display = '';
+    renderListView(workTasks, 'work', listEl);
+  }
+
+  // Completed section
+  var completedBody = document.getElementById('completedBody-work');
+  document.getElementById('completedCount-work').textContent = completed.length;
+  if (completed.length === 0) {
+    document.getElementById('workCompleted').style.display = 'none';
+  } else {
+    document.getElementById('workCompleted').style.display = '';
+    completed.sort(function(a,b){return (b.completedAt||'')>(a.completedAt||'')?1:-1;});
+    completedBody.innerHTML = completed.map(function(t){return renderTaskCard(t,'work');}).join('');
+  }
+
+  document.getElementById('workCount').textContent = active.length;
+  updateAlerts();
+}
+
+function renderPersonalBoard() {
+  populateProjectFilter(personalTasks, 'personalProjectFilter');
+  var filtered = applyProjectFilter(personalTasks, 'personal');
+  var active = filtered.filter(function(t){return !t.completed;});
+  var completed = filtered.filter(function(t){return t.completed;});
+  var mode = viewMode.personal;
+
+  var boardEl = document.getElementById('personalBoard');
+  var listEl = document.getElementById('personalListView');
+
+  if (mode === 'board') {
+    boardEl.style.display = '';
+    listEl.style.display = 'none';
+    renderBoardGrouped(personalTasks, 'personal', boardEl, 'p-col-');
+  } else {
+    boardEl.style.display = 'none';
+    listEl.style.display = '';
+    renderListView(personalTasks, 'personal', listEl);
+  }
+
+  // Completed section
+  var completedBody = document.getElementById('completedBody-personal');
+  document.getElementById('completedCount-personal').textContent = completed.length;
+  if (completed.length === 0) {
+    document.getElementById('personalCompleted').style.display = 'none';
+  } else {
+    document.getElementById('personalCompleted').style.display = '';
+    completed.sort(function(a,b){return (b.completedAt||'')>(a.completedAt||'')?1:-1;});
+    completedBody.innerHTML = completed.map(function(t){return renderTaskCard(t,'personal');}).join('');
+  }
+
+  document.getElementById('personalCount').textContent = active.length;
+}
+
+function renderContentPipeline() {
+  var stages = ['Not Started','Brief Ready','Editing Brief','Writing','Editing','Uploading','Ready for Publishing'];
+  var today = new Date().toISOString().split('T')[0];
+  var container = document.getElementById('contentPipeline');
+
+  container.innerHTML = stages.map(function(stage) {
+    var items = CONTENT_PIPELINE.filter(function(c){return c.stage===stage;});
+    var cards = items.map(function(item) {
+      var isDaniel = item.owner === 'Daniel';
+      var isOverdue = item.nextDue && item.nextDue < today;
+      return '<div class="pipe-card'+(isDaniel?' is-daniel':'')+'">'
+        + '<div class="pipe-title"><a href="'+escHtml(item.url)+'" target="_blank" rel="noopener">'+escHtml(item.name)+'</a></div>'
+        + '<div class="pipe-meta">'
+        + (item.tag ? '<span><span class="badge badge-content">'+escHtml(item.tag)+'</span></span>' : '')
+        + (item.writer ? '<span>Writer: '+escHtml(item.writer)+'</span>' : '')
+        + (item.editor ? '<span>Editor: '+escHtml(item.editor)+'</span>' : '')
+        + (item.nextDue ? '<span class="'+(isOverdue?'overdue':'')+'">'+(item.nextDueLabel||'Due')+': '+new Date(item.nextDue+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
+        + '</div></div>';
+    }).join('');
+
+    return '<div class="pipe-col">'
+      + '<div class="pipe-header"><span>'+escHtml(stage)+'</span><span style="color:var(--text-muted)">'+items.length+'</span></div>'
+      + '<div class="pipe-body">'+(items.length===0?'<div class="empty-state">Empty</div>':cards)+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function updateAlerts() {
+  var today = new Date().toISOString().split('T')[0];
+  var active = workTasks.filter(function(t){return !t.completed;});
+  var critical = active.filter(function(t){return t.priority==='Critical';});
+  var overdue = active.filter(function(t){return t.due && t.due < today;});
+  var bar = document.getElementById('alertBar');
+
+  if (critical.length > 0 || overdue.length > 0) {
+    var parts = [];
+    if (critical.length) parts.push(critical.length+' critical task'+(critical.length>1?'s':''));
+    if (overdue.length) parts.push(overdue.length+' overdue');
+    bar.innerHTML = '<strong>Attention:</strong>&nbsp;'+parts.join(', ')+' need your focus';
+    bar.classList.add('visible');
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+// --- Task Actions ---
+function toggleComplete(id, scope) {
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){return t.id===id;});
+  if (task) {
+    task.completed = !task.completed;
+    if (task.completed) {
+      task.completedAt = new Date().toISOString();
+      task.status = 'Done';
+    } else {
+      delete task.completedAt;
+      task.status = 'Not Started';
+    }
+    saveState();
+    scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+  }
+}
+
+function toggleCompletedSection(scope) {
+  var body = document.getElementById('completedBody-'+scope);
+  var arrow = document.getElementById('completedArrow-'+scope);
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function deleteTask(id, scope) {
+  saveDeletedId(id); // Permanently track so it doesn't come back on next sync
+  if (scope === 'work') {
+    workTasks = workTasks.filter(function(t){return t.id!==id;});
+    saveState();
+    renderWorkBoard();
+  } else {
+    personalTasks = personalTasks.filter(function(t){return t.id!==id;});
+    saveState();
+    renderPersonalBoard();
+  }
+}
+
+function addWorkTask() {
+  var input = document.getElementById('workAddInput');
+  var group = document.getElementById('workAddGroup').value;
+  var priority = document.getElementById('workAddPriority').value;
+  var projSel = document.getElementById('workAddProject');
+  var project = projSel.value || null;
+  var name = input.value.trim();
+  if (!name) return;
+  workTasks.push({
+    id:'w-new-'+(nextWorkId++), name:name, group:group, priority:priority,
+    status:'Not Started', source:'local', mondayId:null, boardId:null,
+    due:null, category:'', domain:null, url:null, completed:false,
+    project:project, isProjectHub:false
+  });
+  input.value = '';
+  projSel.value = '';
+  saveState();
+  renderWorkBoard();
+  input.focus();
+}
+
+function addPersonalTask() {
+  var input = document.getElementById('personalAddInput');
+  var group = document.getElementById('personalAddGroup').value;
+  var priority = document.getElementById('personalAddPriority').value;
+  var projSel = document.getElementById('personalAddProject');
+  var project = projSel.value || null;
+  var name = input.value.trim();
+  if (!name) return;
+  personalTasks.push({
+    id:'p-new-'+(nextPersonalId++), name:name, group:group, priority:priority,
+    status:'Not Started', source:'local', mondayId:null, boardId:null,
+    due:null, category:'', domain:null, url:null, completed:false,
+    project:project, isProjectHub:false
+  });
+  input.value = '';
+  projSel.value = '';
+  saveState();
+  renderPersonalBoard();
+  input.focus();
+}
+
+// --- Drag and Drop ---
+function onDragStart(e, taskId, scope) {
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', taskId+'|'+scope);
+  setTimeout(function() {
+    var el = document.getElementById('task-'+taskId);
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function onDragEnd(e) {
+  document.querySelectorAll('.task-card.dragging').forEach(function(el){el.classList.remove('dragging');});
+  document.querySelectorAll('.col-body.drag-over').forEach(function(el){el.classList.remove('drag-over');});
+}
+
+// Drag-drop is now bound dynamically via bindDragDrop() in renderBoardGrouped()
+
+// --- Dropdown option builders ---
+function statusOptions(current) {
+  var opts = ['Not Started','In Progress','Working on it','On Deck','Blocked','Waiting','Ready for Review','Done'];
+  return opts.map(function(o) {
+    return '<option value="'+escHtml(o)+'"'+(o===current?' selected':'')+'>'+escHtml(o)+'</option>';
+  }).join('');
+}
+
+function priorityOptions(current) {
+  var opts = [['','None'],['Critical','Critical'],['Boulder','Boulder'],['Pebble','Pebble'],['High','High'],['Medium','Medium'],['Low','Low']];
+  return opts.map(function(o) {
+    return '<option value="'+o[0]+'"'+(o[0]===current?' selected':'')+'>'+o[1]+'</option>';
+  }).join('');
+}
+
+function groupOptions(current) {
+  var opts = [['today','Today'],['tomorrow','Tomorrow'],['thisWeek','This Week'],['later','Later'],['backlog','Backlog']];
+  return opts.map(function(o) {
+    return '<option value="'+o[0]+'"'+(o[0]===current?' selected':'')+'>'+o[1]+'</option>';
+  }).join('');
+}
+
+function changeField(taskId, scope, field, value) {
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (task) {
+    // Clean up project field — empty string becomes null
+    if (field === 'project' && !value) value = null;
+    // When Hub is checked and no project name exists, auto-fill from task name
+    if (field === 'isProjectHub' && value === true && !task.project) {
+      task.project = task.name;
+    }
+    // When Hub is unchecked, optionally clear project if it matches the task name
+    // (leave it alone if the user set a custom project name)
+    task[field] = value;
+    // If status changed to "Done", also mark as completed
+    if (field === 'status' && value === 'Done') {
+      task.completed = true;
+      task.completedAt = new Date().toISOString();
+    }
+    // If status changed away from "Done", uncomplete
+    if (field === 'status' && value !== 'Done' && task.completed) {
+      task.completed = false;
+      delete task.completedAt;
+    }
+    saveState();
+    scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+    // Re-open detail panel after re-render
+    setTimeout(function() {
+      var detail = document.getElementById('detail-'+taskId);
+      if (detail) detail.classList.add('open');
+      var listDetail = document.getElementById('list-detail-'+taskId);
+      if (listDetail) listDetail.classList.add('open');
+    }, 10);
+  }
+}
+
+// --- Expand/Collapse Detail ---
+function toggleDetail(taskId, scope, event) {
+  // Don't toggle if clicking inside the detail panel (selects, textarea, etc.)
+  if (event && event.target && event.target.closest && event.target.closest('.task-detail')) return;
+  var detail = document.getElementById('detail-'+taskId);
+  if (detail) detail.classList.toggle('open');
+}
+
+function postComment(taskId, scope) {
+  var input = document.getElementById('comment-input-'+taskId);
+  if (!input) return;
+  var text = input.value.trim();
+  if (!text) return;
+
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (!task) return;
+
+  if (!task.comments) task.comments = [];
+
+  var mondayToggle = document.getElementById('monday-toggle-'+taskId);
+  var pushToMonday = mondayToggle ? mondayToggle.checked : false;
+
+  task.comments.unshift({
+    text: text,
+    timestamp: new Date().toISOString(),
+    source: 'local',
+    pushToMonday: pushToMonday,
+    pushedToMonday: false,
+    mondayUpdateId: null
+  });
+
+  input.value = '';
+  saveState();
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+
+  // Re-open the detail panel after re-render
+  setTimeout(function() {
+    var detail = document.getElementById('detail-'+taskId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function deleteComment(taskId, scope, index) {
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (!task || !task.comments) return;
+  task.comments.splice(index, 1);
+  saveState();
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+  setTimeout(function() {
+    var detail = document.getElementById('detail-'+taskId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function editComment(taskId, scope, index) {
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (!task || !task.comments || !task.comments[index]) return;
+
+  var textEl = document.getElementById('comment-text-'+taskId+'-'+index);
+  if (!textEl) return;
+  var original = task.comments[index].text;
+
+  textEl.innerHTML = '<textarea class="comment-edit-area" onclick="event.stopPropagation()" oninput="autoGrow(this)">'+escHtml(original)+'</textarea>'
+    + '<div class="comment-edit-actions">'
+    + '<button class="save-btn" onclick="event.stopPropagation();saveCommentEdit(\''+taskId+'\',\''+scope+'\','+index+')">Save</button>'
+    + '<button class="cancel-btn" onclick="event.stopPropagation();cancelCommentEdit(\''+taskId+'\',\''+scope+'\','+index+',this)">Cancel</button>'
+    + '</div>';
+
+  var ta = textEl.querySelector('textarea');
+  if (ta) { ta.focus(); autoGrow(ta); }
+}
+
+function saveCommentEdit(taskId, scope, index) {
+  var textEl = document.getElementById('comment-text-'+taskId+'-'+index);
+  if (!textEl) return;
+  var ta = textEl.querySelector('textarea');
+  if (!ta) return;
+  var newText = ta.value.trim();
+  if (!newText) return;
+
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (!task || !task.comments || !task.comments[index]) return;
+
+  task.comments[index].text = newText;
+  saveState();
+  scope === 'work' ? renderWorkBoard() : renderPersonalBoard();
+  setTimeout(function() {
+    var detail = document.getElementById('detail-'+taskId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function cancelCommentEdit(taskId, scope, index) {
+  var list = scope === 'work' ? workTasks : personalTasks;
+  var task = list.find(function(t){ return t.id === taskId; });
+  if (!task || !task.comments || !task.comments[index]) return;
+
+  var textEl = document.getElementById('comment-text-'+taskId+'-'+index);
+  if (textEl) textEl.innerHTML = escHtml(task.comments[index].text);
+}
+
+function toggleCommentExpand(taskId) {
+  var feed = document.getElementById('comment-feed-'+taskId);
+  if (feed) feed.classList.toggle('expanded');
+}
+
+// =============================================================================
+// JOB SEARCH
+// =============================================================================
+
+function switchPersonalView(view) {
+  document.querySelectorAll('#tab-personal .sub-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelector('.sub-tab[data-pview="'+view+'"]').classList.add('active');
+  document.getElementById('view-ptasks').style.display = view === 'ptasks' ? 'block' : 'none';
+  document.getElementById('view-jobs').style.display = view === 'jobs' ? 'block' : 'none';
+  if (view === 'jobs') renderJobBoard();
+  try { localStorage.setItem('coolhits_personalView', view); } catch(e) {}
+}
+
+var JOB_STAGES = ['New','Applied','Contacted','Declined','Archived'];
+var JOB_STAGE_COLORS = { New:'var(--blue)', Applied:'var(--purple)', Contacted:'var(--green)', Declined:'var(--red)', Archived:'var(--gray)' };
+var CONTACTED_SUBS = ['Promised Resume Review','Recruiter Screen','Interview Stage','Offer'];
+var DECLINED_SUBS = ['I Declined','Company Declined'];
+var jobViewMode = 'grid';
+
+function setJobView(mode) {
+  jobViewMode = mode;
+  document.getElementById('job-view-grid').classList.toggle('active', mode === 'grid');
+  document.getElementById('job-view-pipeline').classList.toggle('active', mode === 'pipeline');
+  document.getElementById('jobGrid').style.display = mode === 'grid' ? '' : 'none';
+  document.getElementById('jobPipeline').style.display = mode === 'pipeline' ? '' : 'none';
+  renderJobBoard();
+  try { localStorage.setItem('coolhits_jobView', mode); } catch(e) {}
+}
+
+function renderJobBoard() {
+  if (jobViewMode === 'grid') {
+    renderJobGrid();
+  } else {
+    renderJobPipeline();
+  }
+  document.getElementById('jobCount').textContent = jobListings.filter(function(j){ return j.status !== 'Archived' && j.status !== 'Declined'; }).length;
+}
+
+function renderJobGrid() {
+  var container = document.getElementById('jobGrid');
+  // Grid layout:
+  // Row 1: Tier 1 (New/Applied) | Tier 2 (New/Applied) | Contacted
+  // Row 2: Tier 3 (New/Applied) | Declined              | Archived
+  var tier1 = jobListings.filter(function(j){ return j.tier === 1 && (j.status === 'New' || j.status === 'Applied'); });
+  var tier2 = jobListings.filter(function(j){ return j.tier === 2 && (j.status === 'New' || j.status === 'Applied'); });
+  var tier3 = jobListings.filter(function(j){ return j.tier === 3 && (j.status === 'New' || j.status === 'Applied'); });
+  var contacted = jobListings.filter(function(j){ return j.status === 'Contacted'; });
+  var declined = jobListings.filter(function(j){ return j.status === 'Declined'; });
+  var archived = jobListings.filter(function(j){ return j.status === 'Archived'; });
+
+  var sections = [
+    { label:'Tier 1', color:'var(--green)', items:tier1 },
+    { label:'Tier 2', color:'var(--blue)', items:tier2 },
+    { label:'Contacted', color:'var(--green)', items:contacted },
+    { label:'Tier 3', color:'var(--gray)', items:tier3 },
+    { label:'Declined', color:'var(--red)', items:declined },
+    { label:'Archived', color:'var(--text-muted)', items:archived }
+  ];
+
+  container.innerHTML = sections.map(function(sec) {
+    var cards = sec.items.map(function(j){ return renderJobCard(j); }).join('');
+    return '<div class="job-grid-col">'
+      + '<div class="job-grid-header"><span style="display:flex;align-items:center;gap:6px;"><span class="col-dot" style="background:'+sec.color+'"></span>'+escHtml(sec.label)+'</span><span style="color:var(--text-muted)">'+sec.items.length+'</span></div>'
+      + '<div class="job-grid-body">'+(sec.items.length===0?'<div class="empty-state">None yet</div>':cards)+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderJobPipeline() {
+  var container = document.getElementById('jobPipeline');
+  container.innerHTML = JOB_STAGES.map(function(stage) {
+    var items = jobListings.filter(function(j){ return j.status === stage; });
+    var cards = items.map(function(j){ return renderJobCard(j); }).join('');
+    return '<div class="pipe-col">'
+      + '<div class="pipe-header"><span style="display:flex;align-items:center;gap:6px;"><span class="col-dot" style="background:'+JOB_STAGE_COLORS[stage]+'"></span>'+escHtml(stage)+'</span><span style="color:var(--text-muted)">'+items.length+'</span></div>'
+      + '<div class="pipe-body">'+(items.length===0?'<div class="empty-state">None</div>':cards)+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderJobCard(job) {
+  var tierClass = 'tier-'+job.tier;
+  var badgeClass = 'badge-tier-'+job.tier;
+  var passedClass = (job.status === 'Archived' || job.status === 'Declined') ? ' status-passed' : '';
+  var roleContent = job.jobUrl
+    ? '<a href="'+escHtml(job.jobUrl)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+escHtml(job.role)+'</a>'
+    : escHtml(job.role);
+
+  return '<div class="job-card '+tierClass+passedClass+'" onclick="toggleJobDetail(\''+job.id+'\',event)">'
+    + '<div class="job-actions">'
+    + '<button class="task-action-btn delete" onclick="event.stopPropagation();deleteJob(\''+job.id+'\')" title="Remove">&times;</button>'
+    + '</div>'
+    + '<div class="job-company">'+escHtml(job.company || '')+'</div>'
+    + '<div class="job-role">'+roleContent+'</div>'
+    + '<div class="job-badges">'
+    + '<span class="badge '+badgeClass+'">Tier '+job.tier+'</span>'
+    + (job.score ? '<span class="badge" style="background:var(--accent);color:#fff">'+escHtml(job.score)+'</span>' : '')
+    + (function(){ var sc = {New:'badge-status-deck',Applied:'badge-status-progress',Contacted:'badge-seo',Declined:'badge-critical',Archived:'badge-low'}; return '<span class="badge '+(sc[job.status]||'badge-low')+'">'+escHtml(job.status)+'</span>'; })()
+    + (job.subStatus ? '<span class="badge" style="background:'+(job.status==='Contacted'?'var(--green-dim);color:var(--green)':job.status==='Declined'?'var(--red-dim);color:var(--red)':'var(--gray-dim);color:var(--gray)')+'">'+escHtml(job.subStatus)+'</span>' : '')
+    + (job.salary ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.salary)+'</span>' : '')
+    + (job.location ? '<span style="font-size:10px;color:var(--text-muted)">'+escHtml(job.location)+'</span>' : '')
+    + '</div>'
+    + '<div class="job-meta">'
+    + (job.source ? '<span>'+escHtml(job.source)+'</span>' : '')
+    + (job.postedDate ? '<span>Posted: '+new Date(job.postedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
+    + (job.foundDate ? '<span>Found: '+new Date(job.foundDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
+    + (job.appliedDate ? '<span>Applied: '+new Date(job.appliedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>' : '')
+    + '</div>'
+    + '<div class="job-detail" id="job-detail-'+job.id+'">'
+    + renderJobDetailPanel(job)
+    + '</div>'
+    + '</div>';
+}
+
+function renderJobDetailPanel(job) {
+  // Build sub-status options based on current status
+  var subOpts = '';
+  if (job.status === 'Contacted') {
+    subOpts = '<div class="detail-field"><label>Stage</label>'
+      + '<select class="detail-select" onchange="changeJobField(\''+job.id+'\',\'subStatus\',this.value)" onclick="event.stopPropagation()">'
+      + '<option value="">—</option>'
+      + CONTACTED_SUBS.map(function(s){ return '<option'+(s===job.subStatus?' selected':'')+'>'+escHtml(s)+'</option>'; }).join('')
+      + '</select></div>';
+  } else if (job.status === 'Declined') {
+    subOpts = '<div class="detail-field"><label>Who</label>'
+      + '<select class="detail-select" onchange="changeJobField(\''+job.id+'\',\'subStatus\',this.value)" onclick="event.stopPropagation()">'
+      + '<option value="">—</option>'
+      + DECLINED_SUBS.map(function(s){ return '<option'+(s===job.subStatus?' selected':'')+'>'+escHtml(s)+'</option>'; }).join('')
+      + '</select></div>';
+  }
+
+  var html = '<div class="job-detail-controls">'
+    + '<div class="detail-field"><label>Status</label>'
+    + '<select class="detail-select" onchange="changeJobField(\''+job.id+'\',\'status\',this.value)" onclick="event.stopPropagation()">'
+    + JOB_STAGES.map(function(s){ return '<option'+(s===job.status?' selected':'')+'>'+s+'</option>'; }).join('')
+    + '</select></div>'
+    + subOpts
+    + '<div class="detail-field"><label>Tier</label>'
+    + '<select class="detail-select" onchange="changeJobField(\''+job.id+'\',\'tier\',parseInt(this.value))" onclick="event.stopPropagation()">'
+    + [1,2,3].map(function(t){ return '<option value="'+t+'"'+(t===job.tier?' selected':'')+'>Tier '+t+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="detail-field"><label>Applied</label>'
+    + '<input type="date" class="detail-date" value="'+(job.appliedDate||'')+'" onchange="changeJobField(\''+job.id+'\',\'appliedDate\',this.value||null)" onclick="event.stopPropagation()">'
+    + '</div>'
+    + '</div>';
+
+  if (job.summary) {
+    html += '<div class="job-detail-section"><label>AI Summary</label><p>'+linkify(job.summary)+'</p></div>';
+  }
+  if (job.pros) {
+    html += '<div class="job-detail-section"><label>Pros</label><p style="color:var(--green)">'+linkify(job.pros)+'</p></div>';
+  }
+  if (job.cons) {
+    html += '<div class="job-detail-section"><label>Cons</label><div class="job-watchout">'+linkify(job.cons)+'</div></div>';
+  }
+
+  // Files & Links
+  var hasFiles = job.folderPath || job.resumePath || job.summaryPath || job.jobUrl;
+  if (hasFiles) {
+    var basePath = job.folderPath ? job.folderPath.replace(/\/?$/, '/') : '';
+    html += '<div class="job-detail-section"><label>Files &amp; Links</label><div style="display:flex;flex-direction:column;gap:4px;">';
+    if (job.jobUrl) {
+      html += '<a href="'+escHtml(job.jobUrl)+'" target="_blank" onclick="event.stopPropagation()">Job Posting &#8599;</a>';
+    }
+    if (job.resumePath) {
+      var resumeFullPath = basePath + job.resumePath;
+      html += '<a href="file:///'+escHtml(resumeFullPath)+'" target="_blank" onclick="event.stopPropagation()">Resume: '+escHtml(job.resumePath)+'</a>';
+    }
+    if (job.summaryPath) {
+      var summaryFullPath = basePath + job.summaryPath;
+      html += '<a href="file:///'+escHtml(summaryFullPath)+'" target="_blank" onclick="event.stopPropagation()">Summary: '+escHtml(job.summaryPath)+'</a>';
+    }
+    if (job.folderPath) {
+      html += '<a href="file:///'+escHtml(job.folderPath)+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--text-muted);font-size:11px;">Open folder &#8599;</a>';
+    }
+    html += '</div></div>';
+  }
+
+  // Comments section (reuses same style as tasks)
+  var comments = job.comments || [];
+  var commentItems = '';
+  if (comments.length === 0) {
+    commentItems = '<div class="comment-empty">No notes yet</div>';
+  } else {
+    comments.forEach(function(c, idx) {
+      var ts = c.timestamp ? new Date(c.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+      commentItems += '<div class="comment-item">'
+        + '<div class="comment-header"><span>'+ts+'</span>'
+        + '<span class="comment-actions">'
+        + '<span class="comment-action delete" onclick="event.stopPropagation();deleteJobComment(\''+job.id+'\','+idx+')" title="Delete">&times;</span>'
+        + '</span></div>'
+        + '<div class="comment-text">'+linkify(c.text)+'</div>'
+        + '</div>';
+    });
+  }
+
+  html += '<div class="comment-composer" style="margin-top:8px">'
+    + '<textarea class="comment-input" id="job-comment-'+job.id+'" placeholder="Add a note..." onclick="event.stopPropagation()" oninput="autoGrow(this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();postJobComment(\''+job.id+'\');}"></textarea>'
+    + '<button class="comment-post-btn" onclick="event.stopPropagation();postJobComment(\''+job.id+'\')">Post</button>'
+    + '</div>'
+    + '<div class="comment-feed">'+commentItems+'</div>';
+
+  return html;
+}
+
+function toggleJobDetail(jobId, event) {
+  if (event && event.target && event.target.closest && event.target.closest('.job-detail')) return;
+  var detail = document.getElementById('job-detail-'+jobId);
+  if (detail) detail.classList.toggle('open');
+}
+
+function changeJobField(jobId, field, value) {
+  var job = jobListings.find(function(j){ return j.id === jobId; });
+  if (!job) return;
+  job[field] = value;
+  // Auto-set applied date
+  if (field === 'status' && value === 'Applied' && !job.appliedDate) {
+    job.appliedDate = new Date().toISOString().split('T')[0];
+  }
+  // Clear subStatus when switching to a status that doesn't use it
+  if (field === 'status' && value !== 'Contacted' && value !== 'Declined') {
+    job.subStatus = null;
+  }
+  saveState();
+  renderJobBoard();
+  setTimeout(function() {
+    var detail = document.getElementById('job-detail-'+jobId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function addJob() {
+  var input = document.getElementById('jobAddInput');
+  var tier = parseInt(document.getElementById('jobAddTier').value);
+  var raw = input.value.trim();
+  if (!raw) return;
+  // Parse "Company — Role" or just use as role
+  var parts = raw.split(/\s*[—–-]\s*/);
+  var company = parts.length > 1 ? parts[0] : '';
+  var role = parts.length > 1 ? parts.slice(1).join(' — ') : raw;
+
+  jobListings.push({
+    id: 'j-new-'+(nextJobId++),
+    company: company,
+    role: role,
+    tier: tier,
+    score: null,
+    status: 'New',
+    subStatus: null,
+    jobUrl: null,
+    folderPath: null,
+    resumePath: null,
+    summaryPath: null,
+    summary: null,
+    pros: null,
+    cons: null,
+    source: 'Manual',
+    salary: null,
+    location: null,
+    postedDate: null,
+    foundDate: new Date().toISOString().split('T')[0],
+    appliedDate: null,
+    comments: []
+  });
+  input.value = '';
+  saveState();
+  renderJobBoard();
+  input.focus();
+}
+
+function deleteJob(jobId) {
+  jobListings = jobListings.filter(function(j){ return j.id !== jobId; });
+  saveState();
+  renderJobBoard();
+}
+
+function postJobComment(jobId) {
+  var input = document.getElementById('job-comment-'+jobId);
+  if (!input) return;
+  var text = input.value.trim();
+  if (!text) return;
+  var job = jobListings.find(function(j){ return j.id === jobId; });
+  if (!job) return;
+  if (!job.comments) job.comments = [];
+  job.comments.unshift({ text: text, timestamp: new Date().toISOString() });
+  input.value = '';
+  saveState();
+  renderJobBoard();
+  setTimeout(function() {
+    var detail = document.getElementById('job-detail-'+jobId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function deleteJobComment(jobId, index) {
+  var job = jobListings.find(function(j){ return j.id === jobId; });
+  if (!job || !job.comments) return;
+  job.comments.splice(index, 1);
+  saveState();
+  renderJobBoard();
+  setTimeout(function() {
+    var detail = document.getElementById('job-detail-'+jobId);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+// --- localStorage Persistence ---
+var STORAGE_KEY_WORK = 'dcc_work_tasks';
+var STORAGE_KEY_PERSONAL = 'dcc_personal_tasks';
+var STORAGE_KEY_JOBS = 'dcc_job_listings';
+var STORAGE_KEY_IDS = 'dcc_next_ids';
+var STORAGE_KEY_DELETED = 'dcc_deleted_ids';
+var deletedTaskIds = {};
+
+function loadDeletedIds() {
+  try { var s = localStorage.getItem(STORAGE_KEY_DELETED); if (s) deletedTaskIds = JSON.parse(s); } catch(e) {}
+}
+function saveDeletedId(id) {
+  deletedTaskIds[id] = true;
+  try { localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deletedTaskIds)); } catch(e) {}
+  // Async sync to Supabase
+  sb.from('deleted_tasks').upsert({ id: id }).then(function(){}).catch(function(e){ console.warn('deleted_tasks sync failed', e); });
+}
+
+var STORAGE_KEY_ORDER = 'dcc_task_order';
+var taskOrder = {}; // { 'work|timeline|today': ['id1','id2',...], ... }
+
+function loadTaskOrder() {
+  try { var s = localStorage.getItem(STORAGE_KEY_ORDER); if (s) taskOrder = JSON.parse(s); } catch(e) {}
+}
+function saveTaskOrder() {
+  try { localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(taskOrder)); } catch(e) {}
+  // Async sync to Supabase
+  var rows = Object.keys(taskOrder).map(function(k){ return { order_key: k, task_ids: taskOrder[k] }; });
+  if (rows.length) sb.from('task_order').upsert(rows).then(function(){}).catch(function(e){ console.warn('task_order sync failed', e); });
+}
+function getOrderKey(scope, groupingName, groupValue) {
+  return scope + '|' + groupingName + '|' + groupValue;
+}
+// Returns tasks sorted by saved manual order; new tasks not in the order go at the end
+function getSortedGroup(tasks, scope, groupingName, groupValue) {
+  var key = getOrderKey(scope, groupingName, groupValue);
+  var order = taskOrder[key];
+  if (!order || !order.length) return tasks;
+  var idToTask = {};
+  tasks.forEach(function(t){ idToTask[t.id] = t; });
+  var sorted = [];
+  order.forEach(function(id) { if (idToTask[id]) { sorted.push(idToTask[id]); delete idToTask[id]; } });
+  tasks.forEach(function(t) { if (idToTask[t.id]) sorted.push(t); }); // append any new tasks
+  return sorted;
+}
+function setGroupOrder(scope, groupingName, groupValue, orderedTasks) {
+  var key = getOrderKey(scope, groupingName, groupValue);
+  taskOrder[key] = orderedTasks.map(function(t){ return t.id; });
+  saveTaskOrder();
+}
+
+// Deduplicate by id — keeps the FIRST occurrence (localStorage version wins over embedded)
+function dedup(tasks) {
+  var seen = {};
+  return tasks.filter(function(t) {
+    if (seen[t.id]) return false;
+    seen[t.id] = true;
+    return true;
+  });
+}
+
+// Deduplicate by mondayId — keeps the FIRST occurrence (prevents duplicate Monday tasks with different local IDs)
+function dedupByMondayId(tasks) {
+  var seen = {};
+  return tasks.filter(function(t) {
+    if (!t.mondayId) return true;
+    if (seen[t.mondayId]) return false;
+    seen[t.mondayId] = true;
+    return true;
+  });
+}
+
+function saveState() {
+  // Immediate localStorage save — keeps UI fast and provides offline fallback
+  try {
+    localStorage.setItem(STORAGE_KEY_WORK, JSON.stringify(workTasks));
+    localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalTasks));
+    localStorage.setItem(STORAGE_KEY_JOBS, JSON.stringify(jobListings));
+    localStorage.setItem(STORAGE_KEY_IDS, JSON.stringify({ work: nextWorkId, personal: nextPersonalId, jobs: nextJobId }));
+  } catch(e) {}
+  // Background sync to Supabase — fire and forget
+  syncToSupabase();
+}
+
+async function syncToSupabase() {
+  try {
+    var workRows = workTasks.map(function(t){ return { id: t.id, scope: 'work', data: t, updated_at: new Date().toISOString() }; });
+    var personalRows = personalTasks.map(function(t){ return { id: t.id, scope: 'personal', data: t, updated_at: new Date().toISOString() }; });
+    var jobRows = jobListings.map(function(j){ return { id: j.id, data: j, updated_at: new Date().toISOString() }; });
+    await Promise.all([
+      workRows.length ? sb.from('tasks').upsert(workRows, { onConflict: 'id' }) : Promise.resolve(),
+      personalRows.length ? sb.from('tasks').upsert(personalRows, { onConflict: 'id' }) : Promise.resolve(),
+      jobRows.length ? sb.from('job_listings').upsert(jobRows, { onConflict: 'id' }) : Promise.resolve(),
+    ]);
+  } catch(e) { console.warn('Supabase sync failed:', e); }
+}
+
+function loadState() {
+  try {
+    var savedWork = localStorage.getItem(STORAGE_KEY_WORK);
+    var savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL);
+    var savedIds = localStorage.getItem(STORAGE_KEY_IDS);
+
+    if (savedWork) {
+      var parsed = JSON.parse(savedWork);
+      // Merge strategy: use saved state but incorporate any NEW tasks from WORK_TASKS
+      // (tasks Claude added in a sync that don't exist in saved state yet)
+      var savedIds_set = {};
+      parsed.forEach(function(t){ savedIds_set[t.id] = true; });
+      // Add any new tasks from WORK_TASKS that aren't in saved state and haven't been deleted
+      WORK_TASKS.forEach(function(t) {
+        if (!savedIds_set[t.id] && !deletedTaskIds[t.id]) {
+          parsed.push(t);
+        }
+      });
+      workTasks = dedupByMondayId(dedup(parsed));
+    } else {
+      workTasks = dedupByMondayId(dedup([...WORK_TASKS]));
+    }
+
+    if (savedPersonal) {
+      var parsedPersonal = JSON.parse(savedPersonal);
+      var pIds = {};
+      parsedPersonal.forEach(function(t){ pIds[t.id] = true; });
+      PERSONAL_TASKS.forEach(function(t) {
+        if (!pIds[t.id] && !deletedTaskIds[t.id]) parsedPersonal.push(t);
+      });
+      personalTasks = dedup(parsedPersonal);
+    } else {
+      personalTasks = dedup([...PERSONAL_TASKS]);
+    }
+
+    // Load jobs
+    var savedJobs = localStorage.getItem(STORAGE_KEY_JOBS);
+    if (savedJobs) {
+      var parsedJobs = JSON.parse(savedJobs);
+      var jIds = {};
+      parsedJobs.forEach(function(j){ jIds[j.id] = true; });
+      JOB_LISTINGS.forEach(function(j) {
+        if (!jIds[j.id]) parsedJobs.push(j);
+      });
+      jobListings = dedup(parsedJobs);
+    } else {
+      jobListings = dedup([...JOB_LISTINGS]);
+    }
+
+    if (savedIds) {
+      var ids = JSON.parse(savedIds);
+      nextWorkId = ids.work || 100;
+      nextPersonalId = ids.personal || 100;
+      nextJobId = ids.jobs || 100;
+    }
+  } catch(e) {
+    // If anything goes wrong, fall back to defaults
+    workTasks = [...WORK_TASKS];
+    personalTasks = [...PERSONAL_TASKS];
+    jobListings = [...JOB_LISTINGS];
+  }
+}
+
+// --- Sync time ---
+function updateSyncTime() {
+  var syncDate = new Date(LAST_SYNC);
+  var now = new Date();
+  var diffMin = Math.floor((now - syncDate) / 60000);
+  var label;
+  if (diffMin < 1) label = 'Synced just now';
+  else if (diffMin < 60) label = 'Synced '+diffMin+'m ago';
+  else if (diffMin < 1440) label = 'Synced '+Math.floor(diffMin/60)+'h ago';
+  else label = 'Synced '+syncDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('syncTime').textContent = label;
+}
+
+// --- Migrate old notes to comments ---
+function migrateNotesToComments(taskList) {
+  taskList.forEach(function(t) {
+    if (!t.comments) t.comments = [];
+    // Migrate old notes string into a comment
+    if (t.notes && t.notes.trim().length > 0 && t.comments.length === 0) {
+      t.comments.push({
+        text: t.notes,
+        timestamp: t.completedAt || new Date().toISOString(),
+        source: 'local',
+        pushToMonday: false,
+        pushedToMonday: false,
+        mondayUpdateId: null
+      });
+      delete t.notes;
+    }
+  });
+}
+
+// --- Theme ---
+function toggleTheme() {
+  var isLight = document.body.classList.toggle('light');
+  document.getElementById('themeToggle').textContent = isLight ? 'Dark' : 'Light';
+  try { localStorage.setItem('dcc_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+}
+
+function loadTheme() {
+  try {
+    var saved = localStorage.getItem('dcc_theme');
+    if (saved === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('themeToggle').textContent = 'Dark';
+    }
+  } catch(e) {}
+}
+
+// =============================================================================
+// BRIEFS TAB
+// =============================================================================
+
+var BRIEF_STATUSES = [
+  { value: 1, label: 'MCL JSON Ready', color: '#6b7280', phase: 'prep' },
+  { value: 2, label: 'Ready for Research', color: '#3b82f6', phase: 'research' },
+  { value: 3, label: 'SERP API Research Done', color: '#3b82f6', phase: 'research' },
+  { value: 4, label: 'Scrape in Progress', color: '#3b82f6', phase: 'research' },
+  { value: 5, label: 'Scrape Done', color: '#3b82f6', phase: 'research' },
+  { value: 6, label: 'Final Wave Research', color: '#8b5cf6', phase: 'wave' },
+  { value: 7, label: 'Wave Research Finished', color: '#8b5cf6', phase: 'wave' },
+  { value: 8, label: 'Ready for AI Brief', color: '#f59e0b', phase: 'brief' },
+  { value: 9, label: 'AI Brief in Progress', color: '#f97316', phase: 'brief' },
+  { value: 10, label: 'Python Script Finished', color: '#f97316', phase: 'brief' },
+  { value: 11, label: 'Google Doc Creation', color: '#10b981', phase: 'doc' },
+  { value: 12, label: 'Google Doc Done', color: '#10b981', phase: 'doc' },
+  { value: 13, label: 'Monday Updated', color: '#059669', phase: 'complete' }
+];
+
+var briefItems = [];
+var briefFilters = { batch: '', wave: '', runSet: '', status: '', site: '', tier: '', readyOnly: false };
+var briefSelection = new Set();
+var nextBriefId = 1;
+
+var STORAGE_KEY_BRIEFS = 'coolhits_briefs';
+var STORAGE_KEY_BRIEFS_IDS = 'coolhits_briefs_ids';
+
+function loadBriefState() {
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY_BRIEFS);
+    if (saved) {
+      briefItems = JSON.parse(saved);
+    } else {
+      briefItems = [];
+    }
+    var savedIds = localStorage.getItem(STORAGE_KEY_BRIEFS_IDS);
+    if (savedIds) {
+      nextBriefId = JSON.parse(savedIds);
+    }
+  } catch(e) {
+    briefItems = [];
+  }
+}
+
+function saveBriefState() {
+  try {
+    localStorage.setItem(STORAGE_KEY_BRIEFS, JSON.stringify(briefItems));
+    localStorage.setItem(STORAGE_KEY_BRIEFS_IDS, JSON.stringify(nextBriefId));
+  } catch(e) {}
+}
+
+function getBriefStatusInfo(statusValue) {
+  return BRIEF_STATUSES.find(function(s){ return s.value === statusValue; }) || BRIEF_STATUSES[0];
+}
+
+function renderBriefs() {
+  var filtered = getFilteredBriefs();
+
+  // Group by research wave
+  var grouped = {};
+  filtered.forEach(function(item) {
+    var wave = item.research_wave || '(No Wave)';
+    if (!grouped[wave]) grouped[wave] = [];
+    grouped[wave].push(item);
+  });
+
+  // Sort items within each group by status (furthest first), then UID
+  Object.keys(grouped).forEach(function(wave) {
+    grouped[wave].sort(function(a, b) {
+      if (a.status !== b.status) return b.status - a.status;
+      return a.uid.localeCompare(b.uid);
+    });
+  });
+
+  var html = '';
+  var waves = Object.keys(grouped).sort();
+  waves.forEach(function(wave) {
+    html += '<tr class="brief-group-header"><td colspan="12">Research Wave: '+escHtml(wave)+' ('+grouped[wave].length+')</td></tr>';
+    grouped[wave].forEach(function(item) {
+      html += renderBriefRow(item);
+    });
+  });
+
+  document.getElementById('briefsTableBody').innerHTML = html;
+  renderBriefStats();
+  updateBriefCounts();
+
+  // Restore expanded detail panels
+  briefItems.forEach(function(item) {
+    var detail = document.getElementById('brief-detail-'+item.uid);
+    if (detail) detail.classList.remove('open');
+  });
+}
+
+function renderBriefRow(item) {
+  var status = getBriefStatusInfo(item.status);
+  var isGated = (item.status === 2 && !item.research_eligible_date) || (item.status === 8 && !item.brief_eligible_date);
+  var statusClass = 'brief-status-' + item.status + (isGated ? ' brief-gated' : '');
+
+  var siteClass = item.site === 'MovingPlace' ? 'brief-site-mp' : (item.site === 'HowAboutHome' ? 'brief-site-hah' : '');
+
+  var html = '<tr class="brief-row" onclick="toggleBriefDetail(\''+escHtml(item.uid)+'\')">'
+    + '<td><input type="checkbox" class="brief-row-checkbox" onclick="event.stopPropagation();toggleBriefSelect(\''+escHtml(item.uid)+'\')"></td>'
+    + '<td><span class="brief-uid">'+escHtml(item.uid)+'</span></td>'
+    + '<td>'+escHtml(item.item_name)+'</td>'
+    + '<td><span class="brief-badge '+siteClass+'">'+escHtml(item.site)+'</span></td>'
+    + '<td><span class="brief-badge brief-tier">'+escHtml(item.tier)+'</span></td>'
+    + '<td><span class="brief-badge '+statusClass+'">'+escHtml(status.label)+'</span></td>'
+    + '<td>'+escHtml(item.content_task)+'</td>'
+    + '<td>'+item.traffic_opportunity+'</td>'
+    + '<td>'+escHtml(item.research_wave || '')+'</td>'
+    + '<td>'+escHtml(item.run_set || '')+'</td>'
+    + '<td><small>R: '+escHtml(item.research_eligible_date || 'N/A')+' / B: '+escHtml(item.brief_eligible_date || 'N/A')+'</small></td>'
+    + '<td>'+escHtml(item.brief_due_date || '')+'</td>'
+    + '</tr>';
+
+  // Detail panel
+  html += '<tr id="brief-detail-'+escHtml(item.uid)+'" class="brief-detail">'
+    + '<td colspan="12">'
+    + '<div class="brief-detail-content">'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">UID</div><div class="brief-detail-value">'+escHtml(item.uid)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Item Name</div><div class="brief-detail-value">'+escHtml(item.item_name)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Site</div><div class="brief-detail-value">'+escHtml(item.site)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Tier</div><div class="brief-detail-value">'+escHtml(item.tier)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Topic</div><div class="brief-detail-value">'+escHtml(item.topic)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Page Type</div><div class="brief-detail-value">'+escHtml(item.page_type)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Content Task</div><div class="brief-detail-value">'+escHtml(item.content_task)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Cohort</div><div class="brief-detail-value">'+escHtml(item.cohort)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Primary Keyword</div><div class="brief-detail-value">'+escHtml(item.primary_keyword)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Secondary Keywords</div><div class="brief-detail-value">'+escHtml(item.secondary_keywords)+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Traffic Opportunity</div><div class="brief-detail-value">'+item.traffic_opportunity+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Research Wave</div><div class="brief-detail-value">'+escHtml(item.research_wave || '')+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Run Set</div><div class="brief-detail-value">'+escHtml(item.run_set || '')+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Monthly Batch</div><div class="brief-detail-value">'+escHtml(item.monthly_batch || '')+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Research Eligible Date</div><div class="brief-detail-value">'+escHtml(item.research_eligible_date || '')+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Brief Eligible Date</div><div class="brief-detail-value">'+escHtml(item.brief_eligible_date || '')+'</div></div>'
+    + '<div class="brief-detail-field"><div class="brief-detail-label">Brief Due Date</div><div class="brief-detail-value">'+escHtml(item.brief_due_date || '')+'</div></div>'
+    + '<div class="brief-detail-field" style="grid-column:1/-1;"><div class="brief-detail-label">Context</div><textarea class="brief-detail-textarea" id="briefContext-'+escHtml(item.uid)+'" onchange="changeBriefField(\''+escHtml(item.uid)+'\',\'context\',this.value)">'+escHtml(item.context || '')+'</textarea></div>'
+    + '<div class="brief-detail-field" style="grid-column:1/-1;"><div class="brief-detail-label">Positive Context</div><textarea class="brief-detail-textarea" id="briefPosCon-'+escHtml(item.uid)+'" onchange="changeBriefField(\''+escHtml(item.uid)+'\',\'positive_context\',this.value)">'+escHtml(item.positive_context || '')+'</textarea></div>'
+    + '<div class="brief-detail-field" style="grid-column:1/-1;"><div class="brief-detail-label">Negative Context</div><textarea class="brief-detail-textarea" id="briefNegCon-'+escHtml(item.uid)+'" onchange="changeBriefField(\''+escHtml(item.uid)+'\',\'negative_context\',this.value)">'+escHtml(item.negative_context || '')+'</textarea></div>'
+    + '<div class="brief-detail-field" style="grid-column:1/-1;"><div class="brief-detail-label">Monday Link</div><input type="text" value="'+escHtml(item.monday_link || '')+'" onchange="changeBriefField(\''+escHtml(item.uid)+'\',\'monday_link\',this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;outline:none;"></div>'
+    + '</div>'
+    + '<div class="brief-detail-controls">'
+    + '<select id="briefStatus-'+escHtml(item.uid)+'" onchange="changeBriefField(\''+escHtml(item.uid)+'\',\'status\',parseInt(this.value))">';
+
+  BRIEF_STATUSES.forEach(function(s) {
+    html += '<option value="'+s.value+'"'+(item.status===s.value?' selected':'')+'>'+escHtml(s.label)+'</option>';
+  });
+
+  html += '</select>'
+    + '<button onclick="advanceBriefStatus(\''+escHtml(item.uid)+'\')">Advance Status</button>'
+    + '</div>'
+    + '</td></tr>';
+
+  return html;
+}
+
+function toggleBriefDetail(uid) {
+  var detail = document.getElementById('brief-detail-'+uid);
+  if (detail) detail.classList.toggle('open');
+}
+
+function changeBriefField(uid, field, value) {
+  var item = briefItems.find(function(b){ return b.uid === uid; });
+  if (!item) return;
+  item[field] = value;
+  item.last_updated = new Date().toISOString();
+  saveBriefState();
+  renderBriefs();
+  setTimeout(function() {
+    var detail = document.getElementById('brief-detail-'+uid);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function advanceBriefStatus(uid) {
+  var item = briefItems.find(function(b){ return b.uid === uid; });
+  if (!item || item.status >= 13) return;
+  item.status = item.status + 1;
+  item.last_updated = new Date().toISOString();
+  saveBriefState();
+  renderBriefs();
+  setTimeout(function() {
+    var detail = document.getElementById('brief-detail-'+uid);
+    if (detail) detail.classList.add('open');
+  }, 10);
+}
+
+function getFilteredBriefs() {
+  return briefItems.filter(function(item) {
+    if (briefFilters.batch && item.monthly_batch !== briefFilters.batch) return false;
+    if (briefFilters.wave && item.research_wave !== briefFilters.wave) return false;
+    if (briefFilters.runSet && item.run_set !== briefFilters.runSet) return false;
+    if (briefFilters.status && item.status !== parseInt(briefFilters.status)) return false;
+    if (briefFilters.site && item.site !== briefFilters.site) return false;
+    if (briefFilters.tier && item.tier !== briefFilters.tier) return false;
+    if (briefFilters.readyOnly) {
+      if (item.status !== 2 && item.status !== 8) return false;
+      if (item.status === 2 && !item.research_eligible_date) return false;
+      if (item.status === 8 && !item.brief_eligible_date) return false;
+    }
+    return true;
+  });
+}
+
+function renderBriefStats() {
+  var all = briefItems.length;
+  var byStatus = {};
+  BRIEF_STATUSES.forEach(function(s){ byStatus[s.value] = 0; });
+  briefItems.forEach(function(item){ byStatus[item.status] = (byStatus[item.status] || 0) + 1; });
+
+  var readyCount = 0;
+  briefItems.forEach(function(item) {
+    if ((item.status === 2 && item.research_eligible_date) || (item.status === 8 && item.brief_eligible_date)) {
+      readyCount++;
+    }
+  });
+
+  var needsAttention = 0;
+  briefItems.forEach(function(item) {
+    if ((item.status === 2 && !item.research_eligible_date) || (item.status === 8 && !item.brief_eligible_date)) {
+      needsAttention++;
+    }
+  });
+
+  var html = '<div class="briefs-stat-item"><span class="briefs-stat-label">Total:</span><span class="briefs-stat-value">'+all+'</span></div>';
+  var phaseCount = {};
+  BRIEF_STATUSES.forEach(function(s) {
+    if (!phaseCount[s.phase]) phaseCount[s.phase] = 0;
+    phaseCount[s.phase] += byStatus[s.value];
+  });
+  Object.keys(phaseCount).forEach(function(phase) {
+    html += '<div class="briefs-stat-item"><span class="briefs-stat-label">'+phase+':</span><span class="briefs-stat-value">'+phaseCount[phase]+'</span></div>';
+  });
+  html += '<div class="briefs-stat-item"><span class="briefs-stat-label">Ready to Run:</span><span class="briefs-stat-value">'+readyCount+'</span></div>';
+  html += '<div class="briefs-stat-item"><span class="briefs-stat-label">Needs Attention:</span><span class="briefs-stat-value">'+needsAttention+'</span></div>';
+
+  document.getElementById('briefsStatsBar').innerHTML = html;
+}
+
+function populateBriefFilters() {
+  var batches = new Set();
+  var waves = new Set();
+  var runSets = new Set();
+  var statuses = new Set();
+  var sites = new Set();
+  var tiers = new Set();
+
+  briefItems.forEach(function(item) {
+    if (item.monthly_batch) batches.add(item.monthly_batch);
+    if (item.research_wave) waves.add(item.research_wave);
+    if (item.run_set) runSets.add(item.run_set);
+    statuses.add(item.status);
+    if (item.site) sites.add(item.site);
+    if (item.tier) tiers.add(item.tier);
+  });
+
+  var batchSel = document.getElementById('briefFilterBatch');
+  var selected = batchSel.value;
+  batchSel.innerHTML = '<option value="">Monthly Batch: All</option>';
+  Array.from(batches).sort().forEach(function(b) {
+    batchSel.innerHTML += '<option value="'+escHtml(b)+'">'+escHtml(b)+'</option>';
+  });
+  batchSel.value = selected;
+
+  var waveSel = document.getElementById('briefFilterWave');
+  selected = waveSel.value;
+  waveSel.innerHTML = '<option value="">Research Wave: All</option>';
+  Array.from(waves).sort().forEach(function(w) {
+    waveSel.innerHTML += '<option value="'+escHtml(w)+'">'+escHtml(w)+'</option>';
+  });
+  waveSel.value = selected;
+
+  var runSetSel = document.getElementById('briefFilterRunSet');
+  selected = runSetSel.value;
+  runSetSel.innerHTML = '<option value="">Run Set: All</option>';
+  Array.from(runSets).sort().forEach(function(r) {
+    runSetSel.innerHTML += '<option value="'+escHtml(r)+'">'+escHtml(r)+'</option>';
+  });
+  runSetSel.value = selected;
+
+  var statusSel = document.getElementById('briefFilterStatus');
+  selected = statusSel.value;
+  statusSel.innerHTML = '<option value="">Status: All</option>';
+  Array.from(statuses).sort(function(a,b){ return a-b; }).forEach(function(s) {
+    var info = getBriefStatusInfo(s);
+    statusSel.innerHTML += '<option value="'+s+'">'+escHtml(info.label)+'</option>';
+  });
+  statusSel.value = selected;
+
+  var siteSel = document.getElementById('briefFilterSite');
+  selected = siteSel.value;
+  siteSel.innerHTML = '<option value="">Site: All</option>';
+  Array.from(sites).sort().forEach(function(s) {
+    siteSel.innerHTML += '<option value="'+escHtml(s)+'">'+escHtml(s)+'</option>';
+  });
+  siteSel.value = selected;
+
+  var tierSel = document.getElementById('briefFilterTier');
+  selected = tierSel.value;
+  tierSel.innerHTML = '<option value="">Tier: All</option>';
+  Array.from(tiers).sort().forEach(function(t) {
+    tierSel.innerHTML += '<option value="'+escHtml(t)+'">'+escHtml(t)+'</option>';
+  });
+  tierSel.value = selected;
+}
+
+function applyBriefFilters() {
+  briefFilters.batch = document.getElementById('briefFilterBatch').value;
+  briefFilters.wave = document.getElementById('briefFilterWave').value;
+  briefFilters.runSet = document.getElementById('briefFilterRunSet').value;
+  briefFilters.status = document.getElementById('briefFilterStatus').value;
+  briefFilters.site = document.getElementById('briefFilterSite').value;
+  briefFilters.tier = document.getElementById('briefFilterTier').value;
+  renderBriefs();
+}
+
+function clearBriefFilters() {
+  briefFilters = { batch: '', wave: '', runSet: '', status: '', site: '', tier: '', readyOnly: false };
+  document.getElementById('briefFilterBatch').value = '';
+  document.getElementById('briefFilterWave').value = '';
+  document.getElementById('briefFilterRunSet').value = '';
+  document.getElementById('briefFilterStatus').value = '';
+  document.getElementById('briefFilterSite').value = '';
+  document.getElementById('briefFilterTier').value = '';
+  document.getElementById('readyFilterBtn').textContent = 'Ready to Run';
+  renderBriefs();
+}
+
+function toggleReadyFilter() {
+  briefFilters.readyOnly = !briefFilters.readyOnly;
+  document.getElementById('readyFilterBtn').textContent = briefFilters.readyOnly ? 'Ready to Run ✓' : 'Ready to Run';
+  renderBriefs();
+}
+
+function toggleBriefSelect(uid) {
+  if (briefSelection.has(uid)) {
+    briefSelection.delete(uid);
+  } else {
+    briefSelection.add(uid);
+  }
+  updateBriefSelection();
+}
+
+function selectAllBriefs() {
+  var filtered = getFilteredBriefs();
+  if (briefSelection.size === filtered.length) {
+    briefSelection.clear();
+  } else {
+    filtered.forEach(function(item){ briefSelection.add(item.uid); });
+  }
+  updateBriefSelection();
+}
+
+function clearBriefSelection() {
+  briefSelection.clear();
+  updateBriefSelection();
+}
+
+function updateBriefSelection() {
+  document.querySelectorAll('.brief-row').forEach(function(row) {
+    var checkbox = row.querySelector('.brief-row-checkbox');
+    var uid = row.textContent.match(/^[A-Z0-9]{2,10}/)?.[0];
+    if (checkbox && uid) {
+      checkbox.checked = briefSelection.has(uid);
+      row.classList.toggle('selected', briefSelection.has(uid));
+    }
+  });
+
+  var allCheckbox = document.getElementById('briefSelectAll');
+  if (allCheckbox) {
+    var filtered = getFilteredBriefs();
+    allCheckbox.checked = briefSelection.size > 0 && briefSelection.size === filtered.length;
+  }
+
+  var bar = document.getElementById('briefBatchBar');
+  if (briefSelection.size > 0) {
+    bar.classList.add('visible');
+    document.getElementById('briefBatchCount').textContent = briefSelection.size + ' item(s) selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function updateBriefCounts() {
+  document.getElementById('briefsCount').textContent = briefItems.length;
+}
+
+function batchAssignWave() {
+  var waveId = prompt('Research Wave ID:');
+  if (!waveId) return;
+  var date = prompt('Research Eligible Date (YYYY-MM-DD):');
+  if (!date) return;
+  briefSelection.forEach(function(uid) {
+    var item = briefItems.find(function(b){ return b.uid === uid; });
+    if (item) {
+      item.research_wave = waveId;
+      item.research_eligible_date = date;
+      item.last_updated = new Date().toISOString();
+    }
+  });
+  saveBriefState();
+  renderBriefs();
+}
+
+function batchAssignRunSet() {
+  var runSetId = prompt('Run Set ID:');
+  if (!runSetId) return;
+  var date = prompt('Brief Eligible Date (YYYY-MM-DD):');
+  if (!date) return;
+  briefSelection.forEach(function(uid) {
+    var item = briefItems.find(function(b){ return b.uid === uid; });
+    if (item) {
+      item.run_set = runSetId;
+      item.brief_eligible_date = date;
+      item.last_updated = new Date().toISOString();
+    }
+  });
+  saveBriefState();
+  renderBriefs();
+}
+
+function batchAdvanceStatus() {
+  briefSelection.forEach(function(uid) {
+    var item = briefItems.find(function(b){ return b.uid === uid; });
+    if (item && item.status < 13) {
+      item.status = item.status + 1;
+      item.last_updated = new Date().toISOString();
+    }
+  });
+  saveBriefState();
+  renderBriefs();
+}
+
+function batchEditContext() {
+  var context = prompt('Context (shared for all selected):');
+  if (context === null) return;
+  briefSelection.forEach(function(uid) {
+    var item = briefItems.find(function(b){ return b.uid === uid; });
+    if (item) {
+      item.context = context;
+      item.last_updated = new Date().toISOString();
+    }
+  });
+  saveBriefState();
+  renderBriefs();
+}
+
+function showImportModal() {
+  document.getElementById('briefImportModal').classList.add('visible');
+}
+
+function hideImportModal() {
+  document.getElementById('briefImportModal').classList.remove('visible');
+  document.getElementById('briefImportTextarea').value = '';
+  document.getElementById('briefImportBatchId').value = '';
+}
+
+function doImport() {
+  var jsonText = document.getElementById('briefImportTextarea').value.trim();
+  var batchId = document.getElementById('briefImportBatchId').value.trim();
+
+  if (!jsonText || !batchId) {
+    alert('Please provide JSON and Monthly Batch ID');
+    return;
+  }
+
+  var data;
+  try {
+    data = JSON.parse(jsonText);
+  } catch(e) {
+    alert('Invalid JSON: ' + e.message);
+    return;
+  }
+
+  if (!Array.isArray(data)) {
+    alert('JSON must be an array of items');
+    return;
+  }
+
+  var duplicates = [];
+  data.forEach(function(item) {
+    if (briefItems.find(function(b){ return b.uid === item.uid; })) {
+      duplicates.push(item.uid);
+    }
+  });
+
+  if (duplicates.length > 0) {
+    var msg = 'Duplicate UIDs found: ' + duplicates.join(', ') + '. Continue anyway?';
+    if (!confirm(msg)) return;
+  }
+
+  data.forEach(function(item) {
+    if (!briefItems.find(function(b){ return b.uid === item.uid; })) {
+      item.status = item.status || 1;
+      item.monthly_batch = batchId;
+      item.research_wave = item.research_wave || '';
+      item.run_set = item.run_set || '';
+      item.context = item.context || '';
+      item.positive_context = item.positive_context || '';
+      item.negative_context = item.negative_context || '';
+      item.monday_link = item.monday_link || '';
+      item.last_updated = new Date().toISOString();
+      briefItems.push(item);
+    }
+  });
+
+  saveBriefState();
+  hideImportModal();
+  populateBriefFilters();
+  renderBriefs();
+  alert('Imported '+data.length+' item(s)');
+}
+
+// --- Supabase data loading ---
+async function loadFromSupabase() {
+  var results = await Promise.all([
+    sb.from('tasks').select('id, scope, data').eq('scope', 'work'),
+    sb.from('tasks').select('id, scope, data').eq('scope', 'personal'),
+    sb.from('content_items').select('id, data'),
+    sb.from('job_listings').select('id, data'),
+    sb.from('task_order').select('order_key, task_ids'),
+    sb.from('deleted_tasks').select('id'),
+    sb.from('sync_meta').select('key, value').eq('key', 'last_sync').maybeSingle(),
+  ]);
+
+  if (results[0].error) throw results[0].error;
+
+  workTasks = (results[0].data || []).map(function(r){ return r.data; });
+  personalTasks = (results[1].data || []).map(function(r){ return r.data; });
+
+  // Update CONTENT_PIPELINE in place so renderContentPipeline() picks it up
+  CONTENT_PIPELINE.length = 0;
+  (results[2].data || []).forEach(function(r){ CONTENT_PIPELINE.push(r.data); });
+
+  jobListings = (results[3].data || []).map(function(r){ return r.data; });
+
+  taskOrder = {};
+  (results[4].data || []).forEach(function(r){ taskOrder[r.order_key] = r.task_ids; });
+
+  deletedTaskIds = {};
+  (results[5].data || []).forEach(function(r){ deletedTaskIds[r.id] = true; });
+
+  if (results[6].data) LAST_SYNC = results[6].data.value;
+
+  // Cache to localStorage for offline fallback
+  try {
+    localStorage.setItem(STORAGE_KEY_WORK, JSON.stringify(workTasks));
+    localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalTasks));
+    localStorage.setItem(STORAGE_KEY_JOBS, JSON.stringify(jobListings));
+    localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(taskOrder));
+    localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deletedTaskIds));
+  } catch(e) {}
+}
+
+// --- Auth ---
+async function sendMagicLink() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var msg = document.getElementById('loginMsg');
+  if (!email) { msg.textContent = 'Please enter your email.'; return; }
+  msg.textContent = 'Sending…';
+  msg.className = 'login-msg';
+  var result = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+  if (result.error) {
+    msg.textContent = 'Error: ' + result.error.message;
+    msg.className = 'login-msg error';
+  } else {
+    msg.textContent = 'Magic link sent! Check your email and click the link.';
+    msg.className = 'login-msg success';
+  }
+}
+
+function renderDashboard() {
+  loadBriefState();
+  migrateNotesToComments(workTasks);
+  migrateNotesToComments(personalTasks);
+  renderWorkBoard();
+  renderPersonalBoard();
+  renderJobBoard();
+  populateBriefFilters();
+  renderBriefs();
+  updateSyncTime();
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  try {
+    var savedTab = localStorage.getItem('coolhits_activeTab');
+    if (savedTab) switchTab(savedTab);
+    var savedWorkView = localStorage.getItem('coolhits_workView');
+    if (savedWorkView) switchWorkView(savedWorkView);
+    var savedPersonalView = localStorage.getItem('coolhits_personalView');
+    if (savedPersonalView) switchPersonalView(savedPersonalView);
+    var savedJobView = localStorage.getItem('coolhits_jobView');
+    if (savedJobView) setJobView(savedJobView);
+  } catch(e) {}
+  setInterval(updateSyncTime, 60000);
+  setInterval(function(){
+    var active = document.activeElement;
+    var userBusy = (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'))
+      || document.querySelector('.task-detail.open, .list-row-detail.open, .job-detail.open') !== null
+      || (document.getElementById('workAddInput') && document.getElementById('workAddInput').value.trim())
+      || (document.getElementById('personalAddInput') && document.getElementById('personalAddInput').value.trim());
+    if (!userBusy) location.reload();
+  }, 60000);
+}
+
+// --- Init ---
+loadTheme();
+
+async function init() {
+  // Handle magic link callback in URL hash (Supabase sets session from URL automatically)
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    await sb.auth.getSession(); // let Supabase parse and store the token
+    window.history.replaceState(null, '', window.location.pathname); // clean up URL
+  }
+
+  var sessionResult = await sb.auth.getSession();
+  var session = sessionResult.data && sessionResult.data.session;
+
+  if (!session) {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    return;
+  }
+
+  // Authenticated — load data from Supabase, fall back to localStorage if offline
+  try {
+    await loadFromSupabase();
+  } catch(e) {
+    console.warn('Supabase load failed, falling back to localStorage:', e);
+    loadDeletedIds();
+    loadTaskOrder();
+    loadState();
+  }
+
+  document.getElementById('loginScreen').classList.add('hidden');
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>

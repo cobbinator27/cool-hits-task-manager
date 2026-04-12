@@ -1,0 +1,114 @@
+{
+  "lastSynced": "2026-04-07T09:00:00Z",
+  "source": "manual",
+  "tasks": [
+    {
+      "id": "p-ai-20260407-001",
+      "name": "Fix grey text on new category label",
+      "group": "thisWeek",
+      "priority": "Pebble",
+      "status": "Not Started",
+      "source": "local",
+      "mondayId": null,
+      "boardId": null,
+      "due": null,
+      "category": "Simple Budgets — Bug",
+      "domain": null,
+      "url": null,
+      "completed": false,
+      "project": "Simple Budgets",
+      "isProjectHub": false,
+      "comments": [
+        {
+          "text": "Simple Budgets issue: After adding a new category and typing in the name, the text renders in grey instead of the normal color. Looks like placeholder styling isn't being cleared — the label should switch to the active text color once the name is saved or confirmed.",
+          "timestamp": "2026-04-07T09:00:00Z",
+          "source": "local",
+          "pushToMonday": false,
+          "pushedToMonday": false,
+          "mondayUpdateId": null
+        }
+      ]
+    },
+    {
+      "id": "p-ai-20260407-002",
+      "name": "Improve bill payment manual status & sorting",
+      "group": "thisWeek",
+      "priority": "Boulder",
+      "status": "Not Started",
+      "source": "local",
+      "mondayId": null,
+      "boardId": null,
+      "due": null,
+      "category": "Simple Budgets — Improvement",
+      "domain": null,
+      "url": null,
+      "completed": false,
+      "project": "Simple Budgets",
+      "isProjectHub": true,
+      "comments": [
+        {
+          "text": "Two related improvements for the manual bill payment flow in Simple Budgets:\n\n1. Better design for manually changing bill payment status — the current UI for toggling a bill's paid/unpaid status needs a UX refresh. Should be more obvious and satisfying to mark a bill as paid.\n\n2. Organize manual pay by due date — bills in the manual pay section should be sorted by due date so the most urgent ones appear first. Currently no clear sort order.",
+          "timestamp": "2026-04-07T09:00:00Z",
+          "source": "local",
+          "pushToMonday": false,
+          "pushedToMonday": false,
+          "mondayUpdateId": null
+        }
+      ]
+    },
+    {
+      "id": "p-ai-20260407-003",
+      "name": "Fix mobile app zoom/scaling issue",
+      "group": "thisWeek",
+      "priority": "Pebble",
+      "status": "Not Started",
+      "source": "local",
+      "mondayId": null,
+      "boardId": null,
+      "due": null,
+      "category": "Simple Budgets — Bug",
+      "domain": null,
+      "url": null,
+      "completed": false,
+      "project": "Simple Budgets",
+      "isProjectHub": false,
+      "comments": [
+        {
+          "text": "Simple Budgets issue: The mobile app frequently appears slightly zoomed in, making the layout feel off. Could be a viewport meta tag issue, an unintentional CSS transform, or a scaling quirk on certain devices. Check viewport settings and whether any elements cause horizontal overflow triggering auto-zoom.",
+          "timestamp": "2026-04-07T09:00:00Z",
+          "source": "local",
+          "pushToMonday": false,
+          "pushedToMonday": false,
+          "mondayUpdateId": null
+        }
+      ]
+    },
+    {
+      "id": "p-ai-20260407-004",
+      "name": "Fix transaction amount not updating in view",
+      "group": "thisWeek",
+      "priority": "Boulder",
+      "status": "Not Started",
+      "source": "local",
+      "mondayId": null,
+      "boardId": null,
+      "due": null,
+      "category": "Simple Budgets — Bug",
+      "domain": null,
+      "url": null,
+      "completed": false,
+      "project": "Simple Budgets",
+      "isProjectHub": false,
+      "comments": [
+        {
+          "text": "Simple Budgets issue: When editing a transaction amount (reported with Barclay's specifically), the new value saves correctly to the underlying data but the UI doesn't refresh to reflect the change. The save works — it's a state/reactivity bug where the frontend isn't re-rendering after the update completes.",
+          "timestamp": "2026-04-07T09:00:00Z",
+          "source": "local",
+          "pushToMonday": false,
+          "pushedToMonday": false,
+          "mondayUpdateId": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "userId": "68065823",
+  "userName": "Daniel Cobb",
+  "boards": {
+    "seoTeamOps": {
+      "id": 6197128988,
+      "name": "SEO Team Ops"
+    },
+    "contentOps": {
+      "id": 6197228419,
+      "name": "Content Ops: PMG"
+    }
+  },
+  "syncIntervalHours": 2,
+  "priorityOrder": [
+    "Critical",
+    "Boulder",
+    "Pebble",
+    "Low"
+  ],
+  "lastFullSync": "2026-04-10T15:13:52Z"
+}

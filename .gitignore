@@ -1,0 +1,8 @@
+# Supabase credentials — never commit these
+data/supabase-config.json
+
+# Backups — large and not needed in repo
+data/backups/
+
+# OS files
+.DS_Store

@@ -1,0 +1,104 @@
+{
+  "boardId": 6197128988,
+  "boardName": "SEO Team Ops",
+  "lastSync": "2026-04-10T15:13:52Z",
+  "itemCount": 8,
+  "items": [
+    {
+      "id": "11672330555",
+      "name": "HaH Migration",
+      "group": "today",
+      "priority": "Critical \u26a0\ufe0f\ufe0f",
+      "status": "In Progress",
+      "due": "2026-04-30",
+      "category": "Admin",
+      "domain": "HireaHelper",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/11672330555"
+    },
+    {
+      "id": "11681931578",
+      "name": "HaH Immediate Geo Page Optimizations",
+      "group": "today",
+      "priority": "Critical \u26a0\ufe0f\ufe0f",
+      "status": "In Progress",
+      "due": "2026-04-17",
+      "category": "Admin",
+      "domain": "HireaHelper",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/11681931578"
+    },
+    {
+      "id": "18211298590",
+      "name": "Create MP TLLPs",
+      "group": "thisWeek",
+      "priority": "Boulder",
+      "status": "In Progress",
+      "due": "2026-04-30",
+      "category": "Individual To-Do",
+      "domain": "MovingPlace",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/18211298590"
+    },
+    {
+      "id": "11439766354",
+      "name": "Brief Automation Build",
+      "group": "thisWeek",
+      "priority": "Pebble",
+      "status": "In Progress",
+      "due": "2026-04-30",
+      "category": "Admin",
+      "domain": "MP + HaH",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/11439766354"
+    },
+    {
+      "id": "9007647036",
+      "name": "Develop SME Strategy",
+      "group": "later",
+      "priority": "Boulder",
+      "status": "In Progress",
+      "due": "2026-05-31",
+      "category": "Strategy",
+      "domain": "MP + HaH",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/9007647036"
+    },
+    {
+      "id": "11248490837",
+      "name": "Implement MP Geo Page Optimizations (Round 1)",
+      "group": "backlog",
+      "priority": "Boulder",
+      "status": "Waiting (Blocked by Dependency and/or team)",
+      "due": null,
+      "category": "Admin",
+      "domain": "MovingPlace",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/11248490837"
+    },
+    {
+      "id": "11672339121",
+      "name": "Develop AI Content Scoring",
+      "group": "backlog",
+      "priority": "Boulder",
+      "status": "Not Started",
+      "due": null,
+      "category": "Admin",
+      "domain": "MP + HaH",
+      "quarter": "Q3",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/11672339121"
+    },
+    {
+      "id": "10961192533",
+      "name": "PGM Data Processing v2",
+      "group": "backlog",
+      "priority": "Pebble",
+      "status": "Not Started",
+      "due": "2026-05-31",
+      "category": "DPR",
+      "domain": "MovingPlace",
+      "quarter": "Q2",
+      "url": "https://hireahelper-cast.monday.com/boards/6197128988/pulses/10961192533"
+    }
+  ]
+}
