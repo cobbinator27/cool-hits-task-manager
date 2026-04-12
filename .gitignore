@@ -4,5 +4,10 @@ data/supabase-config.json
 # Backups — large and not needed in repo
 data/backups/
 
+# Migration artifacts
+data/migrate-to-supabase.js
+dashboard-export*.json
+
 # OS files
 .DS_Store
+.tmp.driveupload/
