@@ -2700,7 +2700,7 @@ function addWorkTask() {
   var name = input.value.trim();
   if (!name) return;
   workTasks.push({
-    id:'w-new-'+(nextWorkId++), name:name, group:group, priority:priority,
+    id:'w-'+Date.now(), name:name, group:group, priority:priority,
     status:'Not Started', source:'local', mondayId:null, boardId:null,
     due:null, category:'', domain:null, url:null, completed:false,
     project:project, isProjectHub:false
@@ -2721,7 +2721,7 @@ function addPersonalTask() {
   var name = input.value.trim();
   if (!name) return;
   personalTasks.push({
-    id:'p-new-'+(nextPersonalId++), name:name, group:group, priority:priority,
+    id:'p-'+Date.now(), name:name, group:group, priority:priority,
     status:'Not Started', source:'local', mondayId:null, boardId:null,
     due:null, category:'', domain:null, url:null, completed:false,
     project:project, isProjectHub:false
@@ -3164,7 +3164,7 @@ function addJob() {
   var role = parts.length > 1 ? parts.slice(1).join(' — ') : raw;
 
   jobListings.push({
-    id: 'j-new-'+(nextJobId++),
+    id: 'j-'+Date.now(),
     company: company,
     role: role,
     tier: tier,
