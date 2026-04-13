@@ -294,7 +294,7 @@ Write job listings to Supabase `job_listings` table: `{ id, data: {...job object
 **Sub-status values:**
 - **Contacted**: `Promised Resume Review`, `Recruiter Screen`, `Interview Stage`, `Offer`
 - **Declined**: `I Declined`, `Company Declined`
-- **New / Applied / Archived**: `subStatus` should be `null`
+- **New / Reviewed / Applied / Archived**: `subStatus` should be `null`
 
 ## Quick Reference: Common Operations
 

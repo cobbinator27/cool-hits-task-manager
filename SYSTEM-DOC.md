@@ -1,6 +1,6 @@
 # Cool Hits 2.0 — System Documentation
 
-*Last updated: April 12, 2026*
+*Last updated: April 13, 2026*
 
 This is the master reference doc for Daniel's task management system. It covers what exists, how it works, what's broken, what's planned, and how to maintain it. Keep this updated as the system evolves.
 
@@ -287,6 +287,7 @@ Full brief management UI is built but hidden/read-only. Leaving in place in case
 | Apr 11, 2026 | v0.8.2 | Replaced 60s page reload with silent 3-minute Supabase poll |
 | Apr 11, 2026 | v0.8.3 | Skill updated for Supabase architecture + env var credential fallback for cloud sessions |
 | Apr 12, 2026 | v0.9 | Mobile task creation via claude.ai/code enabled: moved skill to `.claude/skills/task-manager/` for cross-device auto-load; added `CLAUDE.md` as session entry point; added "Working Across Devices" section; added historical-status note to scope doc |
+| Apr 12, 2026 | v0.9.1 | Mobile UI pass: responsive CSS for phones (<600px), touch-visible task actions, 44px tap targets, padding reduction, job grid single-column breakpoint. Added "Reviewed" job status between New and Applied. Job posted date now prominent on cards. Job search counter shows only New. |
 
 ---
 
@@ -296,7 +297,7 @@ Full brief management UI is built but hidden/read-only. Leaving in place in case
 - [ ] Run Monday sync task → approve tools with "Always allow" on first run
 - [ ] Update Cowork job scan task to write to Supabase `job_listings` table
 - [x] ~~Set `SUPABASE_SERVICE_KEY` env var in Claude Code Settings for cloud session support~~ — **Done Apr 12:** set via claude.ai/code environment config
-- [ ] Mobile UI pass (proper touch targets, tab nav, etc.)
+- [x] ~~Mobile UI pass (proper touch targets, tab nav, etc.)~~ — **Done Apr 12:** responsive CSS, touch actions, padding reduction
 - [ ] Consider migrating from legacy Supabase `service_role` key to newer Secret API keys (individually rotatable)
 
 ### Medium-term
