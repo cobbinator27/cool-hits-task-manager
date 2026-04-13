@@ -249,6 +249,13 @@ The dashboard shows local file paths for resumes/summaries. Browsers block `file
 
 The dashboard has basic responsive breakpoints (1-column board at 768px) but was designed for desktop. No dedicated mobile pass has been done. Functional but cramped on phone.
 
+### Task ID Collision on New Devices/Browsers
+**Severity: High** | **Status: Fixed (Apr 13, 2026)**
+
+Quick-add tasks use incrementing IDs (`p-new-100`, `p-new-101`, etc.) tracked by in-memory counters. On a new device or fresh browser session, these counters reset to 100, causing new tasks to collide with existing Supabase records. The collision causes the new task to silently overwrite an existing one.
+
+**Fix:** `loadFromSupabase()` now scans all loaded task IDs and bumps each counter past the highest existing value before the user can create anything.
+
 ### Briefs Tab Has Dead Editing Code
 **Severity: Info** | **Status: Accepted**
 
@@ -288,6 +295,7 @@ Full brief management UI is built but hidden/read-only. Leaving in place in case
 | Apr 11, 2026 | v0.8.3 | Skill updated for Supabase architecture + env var credential fallback for cloud sessions |
 | Apr 12, 2026 | v0.9 | Mobile task creation via claude.ai/code enabled: moved skill to `.claude/skills/task-manager/` for cross-device auto-load; added `CLAUDE.md` as session entry point; added "Working Across Devices" section; added historical-status note to scope doc |
 | Apr 12, 2026 | v0.9.1 | Mobile UI pass: responsive CSS for phones (<600px), touch-visible task actions, 44px tap targets, padding reduction, job grid single-column breakpoint. Added "Reviewed" job status between New and Applied. Job posted date now prominent on cards. Job search counter shows only New. |
+| Apr 13, 2026 | v0.9.2 | Auth overhaul: replaced magic link with email+password login (fixes PWA deep-link issue, enables LastPass autofill). Added password reset flow. Fixed reset form bleeding into normal visits. Fixed task ID collision on new devices (counter now initialized from Supabase on load). |
 
 ---
 
