@@ -3983,6 +3983,20 @@ async function loadFromSupabase() {
 
   if (results[6].data) LAST_SYNC = results[6].data.value;
 
+  // Bump ID counters past any existing IDs to prevent collisions on new devices/browsers
+  workTasks.forEach(function(t) {
+    var m = t.id && t.id.match(/^w-new-(\d+)$/);
+    if (m) nextWorkId = Math.max(nextWorkId, parseInt(m[1]) + 1);
+  });
+  personalTasks.forEach(function(t) {
+    var m = t.id && t.id.match(/^p-new-(\d+)$/);
+    if (m) nextPersonalId = Math.max(nextPersonalId, parseInt(m[1]) + 1);
+  });
+  jobListings.forEach(function(j) {
+    var m = j.id && j.id.match(/^j-new-(\d+)$/);
+    if (m) nextJobId = Math.max(nextJobId, parseInt(m[1]) + 1);
+  });
+
   // Cache to localStorage for offline fallback
   try {
     localStorage.setItem(STORAGE_KEY_WORK, JSON.stringify(workTasks));
